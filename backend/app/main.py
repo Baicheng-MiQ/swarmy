@@ -2,6 +2,7 @@ import asyncio
 import copy
 import json
 import os
+import re
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -122,9 +123,28 @@ async def get_structured_text_models():
         and "text" in model.get("architecture", {}).get("output_modalities", [])
         and "structured_outputs" in model.get("supported_parameters", [])
         and (model.get("created") or 0) >= ONE_YEAR_AGO
-        and not any(kw in model.get("name", "").lower() for kw in ("video", "image", "audio"))
+        and not any(kw in model.get("name", "").lower() for kw in ("video", "image", "audio", "codex"))
+        and float(model.get("pricing", {}).get("completion", 0) or 0) * 1_000_000 <= 25
     ]
-    return {"data": filtered}
+
+    # Deduplicate by model family – keep only the latest (highest created) per family.
+    # Family key strips variant tags (:free, :exacto, :thinking), -preview suffixes, and date codes.
+    def _family_key(model_id: str) -> str:
+        key = model_id.split(":")[0]                              # strip :free / :thinking / :exacto
+        key = re.sub(r"-preview(-\d{2}-\d{2,4})?$", "", key)     # strip -preview, -preview-05-06
+        key = re.sub(r"-\d{2,4}-\d{2,4}(-\d{2,4})?$", "", key)  # strip -MM-YYYY, -YYYY-MM-DD
+        key = re.sub(r"-\d{4}$", "", key)                         # strip trailing 4-digit date (-0528, -2507)
+        return key
+
+    family_best: dict[str, dict] = {}
+    for model in filtered:
+        key = _family_key(model.get("id", ""))
+        existing = family_best.get(key)
+        if existing is None or (model.get("created") or 0) > (existing.get("created") or 0):
+            family_best[key] = model
+
+    deduped = sorted(family_best.values(), key=lambda m: m.get("created") or 0, reverse=True)
+    return {"data": deduped}
 
 
 @app.post("/chat")
