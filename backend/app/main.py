@@ -10,6 +10,7 @@ import httpx
 from pydantic import BaseModel, Field
 
 from .chat import send_chat
+from .db import init_db, create_job as db_create_job
 
 load_dotenv()
 
@@ -40,6 +41,23 @@ class ChatRequest(BaseModel):
     temperature: float | None = None
     response_format: ResponseFormat | None = None
 
+
+class AgentSpec(BaseModel):
+    model_name: str
+    temperature: float | None = None
+
+
+class CreateJobRequest(BaseModel):
+    messages: list[Message]
+    response_format: ResponseFormat | None = None
+    agents: list[AgentSpec]
+
+
+class CreateJobResponse(BaseModel):
+    job_id: str
+    agents: list[dict]
+
+
 # Unix timestamp for Jan 1, 2025
 ONE_YEAR_AGO = int(datetime(2025, 1, 1, tzinfo=timezone.utc).timestamp())
 
@@ -50,6 +68,7 @@ http_client: httpx.AsyncClient
 async def lifespan(app: FastAPI):
     global http_client
     http_client = httpx.AsyncClient()
+    await init_db()
     yield
     await http_client.aclose()
 
@@ -131,3 +150,22 @@ async def chat_batch(requests: list[ChatRequest]):
         )
     results = await asyncio.gather(*[_do(r) for r in requests])
     return {"results": list(results)}
+
+
+@app.post("/create_job")
+async def create_job(request: CreateJobRequest) -> CreateJobResponse:
+    """Create a swarm job with N agents. Persists to SQLite and returns the job + agent IDs."""
+    messages = [m.model_dump() for m in request.messages]
+    response_format = (
+        request.response_format.model_dump(by_alias=True)
+        if request.response_format
+        else None
+    )
+    agents = [a.model_dump() for a in request.agents]
+
+    result = await db_create_job(
+        messages=messages,
+        response_format=response_format,
+        agents=agents,
+    )
+    return CreateJobResponse(**result)
