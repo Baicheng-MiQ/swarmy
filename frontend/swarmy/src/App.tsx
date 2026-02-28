@@ -1,120 +1,61 @@
-import { useEffect, useState } from 'react'
+import { useState, useCallback } from 'react'
 import './App.css'
+import { useModels } from './hooks/useModels'
+import { useJob } from './hooks/useJob'
+import { Layout } from './components/Layout'
+import { SetupView } from './components/setup/SetupView'
+import { ResultsView } from './components/results/ResultsView'
+import type { CreateJobRequest } from './types'
 
-const BASE_URL = '/api'
-
-interface Model {
-  id: string
-  name: string
-  description?: string
-  pricing?: {
-    prompt?: string
-    completion?: string
-  }
-  context_length?: number
-  architecture?: {
-    input_modalities?: string[]
-    output_modalities?: string[]
-  }
-  top_provider?: {
-    max_completion_tokens?: number
-  }
-}
+type View = 'setup' | 'results'
 
 function App() {
-  const [models, setModels] = useState<Model[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [view, setView] = useState<View>('setup')
+  const { models, loading: modelsLoading, error: modelsError, retry } = useModels()
+  const { job, isPolling, error: jobError, launching, launch, reset } = useJob()
 
-  useEffect(() => {
-    fetchModels()
-  }, [])
+  const handleLaunch = useCallback(
+    async (request: CreateJobRequest) => {
+      const jobId = await launch(request)
+      if (jobId) setView('results')
+    },
+    [launch],
+  )
 
-  async function fetchModels() {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch(`${BASE_URL}/models/structured`)
-      if (!res.ok) throw new Error(`Failed to fetch models (${res.status})`)
-      const data = await res.json()
-      setModels(data.data ?? [])
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const handleReset = useCallback(() => {
+    reset()
+    setView('setup')
+  }, [reset])
 
   return (
-    <div className="page">
-      {/* Header */}
-      <header className="header">
-        <h1 className="header-label">Swarm</h1>
-        <div className="header-title">AI Democracy</div>
-        <p className="header-subtitle">
-          Spawn a swarm of agents, send the same prompt, and see if consensus emerges.
-        </p>
-      </header>
+    <Layout>
+      {view === 'setup' && (
+        <SetupView
+          models={models}
+          modelsLoading={modelsLoading}
+          modelsError={modelsError}
+          onRetryModels={retry}
+          onLaunch={handleLaunch}
+          launching={launching}
+        />
+      )}
 
-      {/* Models section */}
-      <section className="section">
-        <div className="section-label">Available Models — Structured Output</div>
+      {view === 'results' && job && (
+        <ResultsView job={job} isPolling={isPolling} onReset={handleReset} />
+      )}
 
-        {loading && (
-          <div className="skeleton-group">
-            <div className="skeleton" style={{ height: 14, width: '60%' }} />
-            <div className="skeleton" style={{ height: 32, width: '100%' }} />
-            <div className="skeleton" style={{ height: 14, width: '80%' }} />
-            <div className="skeleton" style={{ height: 32, width: '100%' }} />
-            <div className="skeleton" style={{ height: 14, width: '40%' }} />
-          </div>
-        )}
-
-        {error && (
+      {view === 'results' && !job && jobError && (
+        <section className="section">
           <div className="error-block">
             <span className="badge badge-error">Error</span>
-            <span className="error-text">{error}</span>
-            <button className="btn btn-secondary btn-sm" onClick={fetchModels}>
-              Retry
+            <span className="error-text">{jobError}</span>
+            <button className="btn btn-secondary btn-sm" onClick={handleReset}>
+              Back
             </button>
           </div>
-        )}
-
-        {!loading && !error && (
-          <>
-            <div className="model-count">
-              <span className="stat-value-sm">{models.length}</span>
-              <span className="stat-label">models available</span>
-            </div>
-            <div className="card-tight">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Model</th>
-                    <th>Context</th>
-                    <th>Prompt $/M</th>
-                    <th>Completion $/M</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {models.map((m) => (
-                    <tr key={m.id}>
-                      <td>
-                        <div className="model-name">{m.name}</div>
-                        <div className="model-id">{m.id}</div>
-                      </td>
-                      <td>{m.context_length ? m.context_length.toLocaleString() : '—'}</td>
-                      <td>{m.pricing?.prompt ? `$${(parseFloat(m.pricing.prompt) * 1_000_000).toFixed(2)}` : '—'}</td>
-                      <td>{m.pricing?.completion ? `$${(parseFloat(m.pricing.completion) * 1_000_000).toFixed(2)}` : '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-      </section>
-    </div>
+        </section>
+      )}
+    </Layout>
   )
 }
 

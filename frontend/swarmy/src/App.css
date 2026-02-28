@@ -6,7 +6,7 @@
 }
 
 .section {
-  margin-bottom: 64px;
+  margin-bottom: 48px;
 }
 
 .section-label {
@@ -91,6 +91,15 @@
   background: var(--color-n-900);
 }
 
+.table-row-clickable {
+  cursor: pointer;
+}
+
+.table-row-expanded td {
+  background: var(--color-n-900);
+  border-bottom: none;
+}
+
 .model-name {
   font-size: 13px;
   font-weight: 500;
@@ -101,6 +110,22 @@
   font-size: 10px;
   color: var(--color-n-500);
   margin-top: 2px;
+}
+
+.cell-dim {
+  color: var(--color-n-500);
+}
+
+.cell-mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-n-400);
+  word-break: break-all;
+}
+
+.cell-error {
+  color: var(--color-error);
+  font-size: 12px;
 }
 
 /* ── Model count ── */
@@ -116,13 +141,6 @@
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1;
-}
-
-.stat-label {
-  font-size: 10px;
-  color: var(--color-n-500);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 /* ── Buttons ── */
@@ -142,19 +160,56 @@
   text-transform: uppercase;
 }
 
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--color-white);
+  color: var(--color-black);
+}
+
+.btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
 .btn-secondary {
   background: transparent;
   color: var(--color-white);
   border: 1px solid var(--color-n-700);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background: var(--color-n-800);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-n-500);
+  border: none;
+  padding: 4px 8px;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  color: var(--color-white);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
 }
 
 .btn-sm {
   font-size: 10px;
   padding: 8px 12px;
+}
+
+.btn-icon {
+  padding: 4px 8px;
+  font-size: 16px;
+  line-height: 1;
 }
 
 /* ── Badge ── */
@@ -168,6 +223,7 @@
   padding: 3px 8px;
   border-radius: 2px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .badge::before {
@@ -176,11 +232,32 @@
   height: 6px;
   border-radius: 50%;
   background: currentColor;
+  flex-shrink: 0;
 }
 
 .badge-error {
   color: var(--color-error);
   background: color-mix(in srgb, var(--color-error) 12%, transparent);
+}
+
+.badge-success {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+}
+
+.badge-pending {
+  color: var(--color-pending);
+  background: color-mix(in srgb, var(--color-pending) 12%, transparent);
+}
+
+.badge-warning {
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+}
+
+.badge-neutral {
+  color: var(--color-n-500);
+  background: color-mix(in srgb, var(--color-n-500) 12%, transparent);
 }
 
 /* ── Error ── */
@@ -218,4 +295,440 @@
   flex-direction: column;
   gap: 12px;
   max-width: 400px;
+}
+
+/* ── Fields / Inputs ── */
+.field {
+  margin-bottom: 20px;
+}
+
+.field-inline {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.field-narrow {
+  flex: 0 0 80px;
+}
+
+.field-label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-n-500);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.field-label-sm {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-n-500);
+  margin-bottom: 4px;
+}
+
+.field-error {
+  font-size: 11px;
+  color: var(--color-error);
+  margin-top: 6px;
+}
+
+.input {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--color-n-900);
+  color: var(--color-white);
+  border: 1px solid var(--color-n-700);
+  border-radius: 2px;
+  padding: 10px 12px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input:focus {
+  border-color: var(--color-white);
+}
+
+.input::placeholder {
+  color: var(--color-n-500);
+}
+
+.input-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.input-code {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.input-sm {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.input-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+  cursor: pointer;
+}
+
+/* ── Toggle Group ── */
+.toggle-group {
+  display: flex;
+  gap: 0;
+  margin-bottom: 12px;
+}
+
+.toggle-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border: 1px solid var(--color-n-700);
+  background: transparent;
+  color: var(--color-n-500);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.toggle-btn:first-child {
+  border-radius: 2px 0 0 2px;
+}
+
+.toggle-btn:last-child {
+  border-radius: 0 2px 2px 0;
+  border-left: none;
+}
+
+.toggle-btn-active {
+  background: var(--color-n-800);
+  color: var(--color-white);
+  border-color: var(--color-n-500);
+}
+
+/* ── Code Block ── */
+.code-block {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  background: var(--color-n-950);
+  border: 1px solid var(--color-n-800);
+  border-radius: 2px;
+  padding: 16px;
+  overflow-x: auto;
+  color: var(--color-n-300);
+  white-space: pre;
+}
+
+/* ── Spawn Config ── */
+.spawn-config {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.count-input {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.count-btn {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 500;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-n-900);
+  color: var(--color-white);
+  border: 1px solid var(--color-n-700);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.count-btn:first-child {
+  border-radius: 2px 0 0 2px;
+}
+
+.count-btn:last-child {
+  border-radius: 0 2px 2px 0;
+}
+
+.count-btn:hover:not(:disabled) {
+  background: var(--color-n-800);
+}
+
+.count-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.count-value {
+  font-size: 20px;
+  font-weight: 700;
+  min-width: 48px;
+  text-align: center;
+  background: var(--color-n-900);
+  border-top: 1px solid var(--color-n-700);
+  border-bottom: 1px solid var(--color-n-700);
+  height: 36px;
+  line-height: 34px;
+}
+
+.range-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.range-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 80px;
+}
+
+.range-label {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-n-500);
+}
+
+.range-dash {
+  color: var(--color-n-500);
+  padding-bottom: 10px;
+}
+
+/* ── Persona Chips ── */
+.persona-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-n-800);
+  color: var(--color-n-300);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 2px;
+  max-width: 280px;
+}
+
+.chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip-remove {
+  background: none;
+  border: none;
+  color: var(--color-n-500);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.chip-remove:hover {
+  color: var(--color-error);
+}
+
+.persona-add {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.persona-add .input {
+  flex: 1;
+}
+
+/* ── Agent Card (Setup) ── */
+.agent-card {
+  background: var(--color-n-900);
+  border: 1px solid var(--color-n-800);
+  border-radius: 2px;
+  padding: 16px;
+}
+
+.agent-card-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 12px;
+}
+
+/* ── Agent List ── */
+.agent-list-header {
+  margin-bottom: 16px;
+}
+
+.agent-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* ── Action Bar ── */
+.action-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 24px 0 48px;
+  border-top: 1px solid var(--color-n-800);
+}
+
+/* ── Prompt Preview ── */
+.prompt-preview {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-n-300);
+  white-space: pre-wrap;
+}
+
+/* ── Stat Block ── */
+.stat-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-block-value {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--color-white);
+}
+
+.stat-label {
+  font-size: 10px;
+  color: var(--color-n-500);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.stat-row {
+  display: flex;
+  gap: 32px;
+  margin-top: 16px;
+}
+
+/* ── Live Indicator ── */
+.live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-n-500);
+  flex-shrink: 0;
+}
+
+.live-indicator-active .live-dot {
+  background: var(--color-success);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.live-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-n-500);
+}
+
+/* ── Job Header ── */
+.job-header {
+  padding: 16px 0;
+}
+
+/* ── Progress Bar ── */
+.progress-track {
+  height: 2px;
+  background: var(--color-n-800);
+  border-radius: 1px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--color-white);
+  transition: width 0.3s ease;
+  border-radius: 1px;
+}
+
+.progress-fill-done {
+  background: var(--color-success);
+}
+
+/* ── Agent Detail (expanded row) ── */
+.detail-row td {
+  padding: 0 16px 16px;
+  border-bottom: 1px solid var(--color-n-800);
+  background: var(--color-n-900);
+}
+
+.agent-detail {
+  padding: 8px 0;
+}
+
+.detail-section {
+  margin-bottom: 16px;
+}
+
+.detail-text {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-n-300);
+}
+
+.detail-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 10px;
+  color: var(--color-n-500);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
