@@ -52,6 +52,7 @@ class ChatRequest(BaseModel):
 class AgentSpec(BaseModel):
     model_name: str
     temperature: float | None = None
+    persona: str | None = None
 
 
 class CreateJobRequest(BaseModel):
@@ -191,9 +192,15 @@ async def run_swarm(
         try:
             await update_agent(agent_id, status="working")
 
+            # Build per-agent messages: prepend persona if set
+            agent_messages = list(messages)
+            persona = agent.get("persona")
+            if persona:
+                agent_messages.insert(0, {"role": "system", "content": persona})
+
             payload: dict = {
                 "model": agent["model_name"],
-                "messages": messages,
+                "messages": agent_messages,
             }
             if agent.get("temperature") is not None:
                 payload["temperature"] = agent["temperature"]

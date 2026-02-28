@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS agents (
     error       TEXT,
     input_token INTEGER,
     output_token INTEGER,
-    cost        REAL
+    cost        REAL,
+    persona     TEXT
 );
 """
 
@@ -57,6 +58,7 @@ async def create_job(
                 "agent_id": str(uuid.uuid4()),
                 "model_name": spec["model_name"],
                 "temperature": spec.get("temperature"),
+                "persona": spec.get("persona"),
             }
         )
 
@@ -74,8 +76,8 @@ async def create_job(
         )
         await db.executemany(
             "INSERT INTO agents "
-            "(agent_id, job_id, model_name, temperature, status, last_update) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
+            "(agent_id, job_id, model_name, temperature, status, last_update, persona) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
             [
                 (
                     a["agent_id"],
@@ -84,6 +86,7 @@ async def create_job(
                     a["temperature"],
                     "ready",
                     now,
+                    a["persona"],
                 )
                 for a in agent_rows
             ],
@@ -118,7 +121,7 @@ async def get_job(job_id: str) -> dict | None:
 
         cursor = await db.execute(
             "SELECT agent_id, model_name, temperature, status, last_update, "
-            "response, reasoning, error, input_token, output_token, cost "
+            "response, reasoning, error, input_token, output_token, cost, persona "
             "FROM agents WHERE job_id = ?",
             (job_id,),
         )
@@ -143,6 +146,7 @@ async def get_job(job_id: str) -> dict | None:
                 "input_token": a["input_token"],
                 "output_token": a["output_token"],
                 "cost": a["cost"],
+                "persona": a["persona"],
             }
             for a in agent_rows
         ],
