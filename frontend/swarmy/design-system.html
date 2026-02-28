@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Swarm — Design Language</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* ── Neutrals ── */
+    --black:    #0a0a0a;
+    --900:      #111111;
+    --800:      #1a1a1a;
+    --700:      #2a2a2a;
+    --600:      #3d3d3d;
+    --500:      #666666;
+    --400:      #999999;
+    --300:      #cccccc;
+    --200:      #e5e5e5;
+    --100:      #f5f5f5;
+    --white:    #fafafa;
+
+    /* ── Status (only these are colored) ── */
+    --success:  #22c55e;
+    --warning:  #f59e0b;
+    --error:    #ef4444;
+    --pending:  #3b82f6;
+
+    /* ── Typography ── */
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-sans: 'IBM Plex Sans', sans-serif;
+
+    /* ── Spacing scale (base 4px) ── */
+    --s1: 4px;
+    --s2: 8px;
+    --s3: 12px;
+    --s4: 16px;
+    --s5: 24px;
+    --s6: 32px;
+    --s7: 48px;
+    --s8: 64px;
+
+    /* ── Border ── */
+    --border: 1px solid var(--700);
+    --border-subtle: 1px solid var(--800);
+    --radius: 2px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ── */
+  .page { max-width: 900px; margin: 0 auto; padding: var(--s8) var(--s6); }
+  .section { margin-bottom: var(--s8); }
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--500);
+    margin-bottom: var(--s5);
+    padding-bottom: var(--s3);
+    border-bottom: var(--border-subtle);
+  }
+  .row { display: flex; gap: var(--s4); flex-wrap: wrap; align-items: flex-start; }
+  .col { display: flex; flex-direction: column; gap: var(--s3); }
+
+  /* ── Header ── */
+  .header { margin-bottom: var(--s8); }
+  .header h1 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--500);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: var(--s2);
+  }
+  .header .title {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--white);
+    line-height: 1;
+  }
+  .header .subtitle {
+    margin-top: var(--s3);
+    color: var(--500);
+    font-size: 12px;
+    max-width: 420px;
+  }
+
+  /* ── Color swatches ── */
+  .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, 60px); gap: var(--s3); }
+  .swatch { display: flex; flex-direction: column; gap: var(--s2); }
+  .swatch-block { width: 60px; height: 40px; border-radius: var(--radius); border: var(--border-subtle); }
+  .swatch-name { font-size: 10px; color: var(--500); }
+  .swatch-val { font-size: 10px; color: var(--400); }
+
+  .status-grid { display: flex; gap: var(--s5); flex-wrap: wrap; margin-top: var(--s5); }
+  .status-swatch .swatch-block { border: none; }
+
+  /* ── Typography ── */
+  .type-specimen { margin-bottom: var(--s6); }
+  .type-specimen .meta { font-size: 10px; color: var(--500); margin-bottom: var(--s2); letter-spacing: 0.1em; }
+  .t-display { font-size: 40px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+  .t-heading { font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
+  .t-subheading { font-size: 14px; font-weight: 400; color: var(--400); }
+  .t-body { font-family: var(--font-sans); font-size: 14px; color: var(--300); line-height: 1.7; max-width: 480px; }
+  .t-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--500); }
+  .t-mono { font-family: var(--font-mono); font-size: 13px; color: var(--300); }
+  .t-number { font-family: var(--font-mono); font-size: 48px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+
+  /* ── Divider ── */
+  hr { border: none; border-top: var(--border-subtle); margin: var(--s5) 0; }
+
+  /* ── Components ── */
+
+  /* Buttons */
+  .btn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    padding: var(--s3) var(--s5);
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+    transition: opacity 0.15s, background 0.15s;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  .btn-primary { background: var(--white); color: var(--black); }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-secondary { background: transparent; color: var(--white); border: var(--border); }
+  .btn-secondary:hover { background: var(--800); }
+  .btn-ghost { background: transparent; color: var(--400); border: none; padding-left: 0; }
+  .btn-ghost:hover { color: var(--white); }
+  .btn-danger { background: transparent; color: var(--error); border: 1px solid var(--error); }
+  .btn-sm { font-size: 10px; padding: var(--s2) var(--s3); }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* Status badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 2px;
+    font-weight: 500;
+  }
+  .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .badge-success { color: var(--success); background: color-mix(in srgb, var(--success) 12%, transparent); }
+  .badge-warning { color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, transparent); }
+  .badge-error   { color: var(--error);   background: color-mix(in srgb, var(--error)   12%, transparent); }
+  .badge-pending { color: var(--pending); background: color-mix(in srgb, var(--pending) 12%, transparent); }
+  .badge-neutral { color: var(--400); background: var(--800); }
+  .badge-neutral::before { display: none; }
+
+  /* Inputs */
+  .input {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    background: var(--900);
+    color: var(--white);
+    border: var(--border);
+    border-radius: var(--radius);
+    padding: var(--s3) var(--s4);
+    width: 300px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .input:focus { border-color: var(--500); }
+  .input::placeholder { color: var(--600); }
+  .input-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--500); margin-bottom: var(--s2); }
+  .input-group { display: flex; flex-direction: column; gap: 0; }
+
+  /* Card */
+  .card {
+    background: var(--900);
+    border: var(--border);
+    border-radius: var(--radius);
+    padding: var(--s5);
+  }
+  .card-tight {
+    background: var(--900);
+    border: var(--border);
+    border-radius: var(--radius);
+    padding: var(--s4);
+  }
+
+  /* Agent card (domain-specific) */
+  .agent-card {
+    background: var(--900);
+    border: var(--border);
+    border-radius: var(--radius);
+    padding: var(--s4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s3);
+    width: 200px;
+  }
+  .agent-header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .agent-id { font-size: 10px; color: var(--600); }
+  .agent-model { font-size: 13px; font-weight: 500; color: var(--300); }
+  .agent-meta { font-size: 11px; color: var(--500); }
+
+  /* Progress bar */
+  .progress-track {
+    width: 100%;
+    height: 2px;
+    background: var(--800);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--white);
+    border-radius: 1px;
+    transition: width 0.3s;
+  }
+  .progress-fill.success { background: var(--success); }
+
+  /* Stat block */
+  .stat-block { display: flex; flex-direction: column; gap: var(--s2); }
+  .stat-value { font-size: 40px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+  .stat-label { font-size: 10px; color: var(--500); letter-spacing: 0.1em; text-transform: uppercase; }
+  .stat-change { font-size: 11px; }
+  .stat-change.up { color: var(--success); }
+  .stat-change.down { color: var(--error); }
+
+  /* Table */
+  .table { width: 100%; border-collapse: collapse; }
+  .table th {
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--500);
+    padding: var(--s3) var(--s4);
+    border-bottom: var(--border);
+    font-weight: 400;
+  }
+  .table td {
+    padding: var(--s3) var(--s4);
+    border-bottom: var(--border-subtle);
+    font-size: 12px;
+    color: var(--300);
+    vertical-align: middle;
+  }
+  .table tr:last-child td { border-bottom: none; }
+  .table tr:hover td { background: var(--900); }
+
+  /* Consensus bar */
+  .consensus-bar { display: flex; height: 6px; border-radius: 1px; overflow: hidden; width: 100%; gap: 1px; }
+  .consensus-seg { height: 100%; transition: flex 0.4s; }
+
+  /* Divider with label */
+  .divider-label {
+    display: flex;
+    align-items: center;
+    gap: var(--s4);
+    color: var(--600);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: var(--s6) 0;
+  }
+  .divider-label::before,
+  .divider-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--800);
+  }
+
+  /* Code block */
+  .code {
+    background: var(--900);
+    border: var(--border-subtle);
+    border-radius: var(--radius);
+    padding: var(--s4) var(--s5);
+    font-size: 12px;
+    color: var(--400);
+    overflow-x: auto;
+    line-height: 1.8;
+  }
+  .code .k { color: var(--white); }
+  .code .s { color: var(--300); }
+  .code .c { color: var(--600); }
+
+  /* Dot pulse animation (for live status) */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .dot-live {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--success);
+    animation: pulse 1.5s ease-in-out infinite;
+    margin-right: var(--s2);
+  }
+
+  /* Skeleton */
+  @keyframes shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--800) 25%, var(--700) 50%, var(--800) 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--radius);
+  }
+
+  /* Tooltip-style annotation */
+  .annotation {
+    font-size: 10px;
+    color: var(--600);
+    font-style: italic;
+    margin-top: var(--s2);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Swarm — Design Language v1.0</h1>
+    <div class="title">Monochrome.<br>Precise. Signal.</div>
+    <div class="subtitle">Black and white for structure. Grey for hierarchy. Color only when something has happened.</div>
+  </div>
+
+  <!-- COLORS -->
+  <div class="section">
+    <div class="section-label">Neutrals — the entire palette</div>
+    <div class="swatch-grid">
+      <div class="swatch"><div class="swatch-block" style="background:#0a0a0a"></div><div class="swatch-name">black</div><div class="swatch-val">#0a0a0a</div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#111111"></div><div class="swatch-name">900</div><div class="swatch-val">#111111</div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#1a1a1a"></div><div class="swatch-name">800</div><div class="swatch-val">#1a1a1a</div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#2a2a2a"></div><div class="swatch-name">700</div><div class="swatch-val">#2a2a2a</div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#3d3d3d"></div><div class="swatch-name">600</div><div class="swatch-val">#3d3d3d</div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#666666"></div><div class="swatch-name">500</div><div class="swatch-val">#666666</div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#999999"></div><div class="swatch-name">400</div><div class="swatch-val">#999999</div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#cccccc"></div><div class="swatch-name">300</div><div class="swatch-val">#cccccc</div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#e5e5e5"></div><div class="swatch-name">200</div><div class="swatch-val">#e5e5e5</div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#f5f5f5"></div><div class="swatch-name">100</div><div class="swatch-val">#f5f5f5</div></div>
+      <div class="swatch"><div class="swatch-block" style="background:#fafafa; border: 1px solid #2a2a2a;"></div><div class="swatch-name">white</div><div class="swatch-val">#fafafa</div></div>
+    </div>
+
+    <div class="status-grid" style="margin-top: var(--s6);">
+      <div style="margin-bottom: var(--s3); width: 100%;">
+        <div class="section-label" style="border: none; margin-bottom: var(--s3);">Status colors — use only for state</div>
+        <div class="annotation">These are the only colors in the UI. Use them to mean something, not for decoration.</div>
+      </div>
+      <div class="swatch status-swatch"><div class="swatch-block" style="background:#22c55e"></div><div class="swatch-name">success</div><div class="swatch-val">#22c55e</div></div>
+      <div class="swatch status-swatch"><div class="swatch-block" style="background:#f59e0b"></div><div class="swatch-name">warning</div><div class="swatch-val">#f59e0b</div></div>
+      <div class="swatch status-swatch"><div class="swatch-block" style="background:#ef4444"></div><div class="swatch-name">error</div><div class="swatch-val">#ef4444</div></div>
+      <div class="swatch status-swatch"><div class="swatch-block" style="background:#3b82f6"></div><div class="swatch-name">pending</div><div class="swatch-val">#3b82f6</div></div>
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="section">
+    <div class="section-label">Typography</div>
+
+    <div class="type-specimen">
+      <div class="meta">Display — IBM Plex Mono Bold, 40px, tracking -0.03em</div>
+      <div class="t-display">61 / 100<br>Consensus</div>
+    </div>
+
+    <div class="type-specimen">
+      <div class="meta">Heading — IBM Plex Mono Medium, 20px</div>
+      <div class="t-heading">Agent Swarm Results</div>
+    </div>
+
+    <div class="type-specimen">
+      <div class="meta">Subheading — IBM Plex Mono Regular, 14px, grey</div>
+      <div class="t-subheading">gpt-4o-mini · temperature 0.7 · 843ms</div>
+    </div>
+
+    <div class="type-specimen">
+      <div class="meta">Body — IBM Plex Sans Light, 14px · use sparingly for longer prose</div>
+      <div class="t-body">A swarm of 100 agents was dispatched with identical prompts. Responses were collected, parsed, and aggregated. The dominant verdict emerged within 8 seconds.</div>
+    </div>
+
+    <div class="type-specimen">
+      <div class="meta">Label / UI — IBM Plex Mono, 10px, ALL CAPS, tracking 0.15em</div>
+      <div class="t-label">Agreement Rate</div>
+    </div>
+
+    <div class="type-specimen">
+      <div class="meta">Stat — IBM Plex Mono Bold, 48px · for big numbers only</div>
+      <div class="t-number">0.74</div>
+    </div>
+
+    <div class="type-specimen">
+      <div class="meta">Mono body — IBM Plex Mono Regular, 13px · code, IDs, technical values</div>
+      <div class="t-mono">groq/llama3-8b-8192 · job_id: abc123 · latency 1243ms</div>
+    </div>
+  </div>
+
+  <!-- SPACING -->
+  <div class="section">
+    <div class="section-label">Spacing — base 4px</div>
+    <div class="row" style="align-items: flex-end;">
+      <div style="display:flex; flex-direction: column; align-items: center; gap: var(--s3);">
+        <div style="width:4px; height:4px; background:var(--500);"></div>
+        <div class="annotation" style="margin:0">4</div>
+      </div>
+      <div style="display:flex; flex-direction: column; align-items: center; gap: var(--s3);">
+        <div style="width:8px; height:8px; background:var(--500);"></div>
+        <div class="annotation" style="margin:0">8</div>
+      </div>
+      <div style="display:flex; flex-direction: column; align-items: center; gap: var(--s3);">
+        <div style="width:12px; height:12px; background:var(--500);"></div>
+        <div class="annotation" style="margin:0">12</div>
+      </div>
+      <div style="display:flex; flex-direction: column; align-items: center; gap: var(--s3);">
+        <div style="width:16px; height:16px; background:var(--500);"></div>
+        <div class="annotation" style="margin:0">16</div>
+      </div>
+      <div style="display:flex; flex-direction: column; align-items: center; gap: var(--s3);">
+        <div style="width:24px; height:24px; background:var(--500);"></div>
+        <div class="annotation" style="margin:0">24</div>
+      </div>
+      <div style="display:flex; flex-direction: column; align-items: center; gap: var(--s3);">
+        <div style="width:32px; height:32px; background:var(--500);"></div>
+        <div class="annotation" style="margin:0">32</div>
+      </div>
+      <div style="display:flex; flex-direction: column; align-items: center; gap: var(--s3);">
+        <div style="width:48px; height:48px; background:var(--500);"></div>
+        <div class="annotation" style="margin:0">48</div>
+      </div>
+      <div style="display:flex; flex-direction: column; align-items: center; gap: var(--s3);">
+        <div style="width:64px; height:64px; background:var(--500);"></div>
+        <div class="annotation" style="margin:0">64</div>
+      </div>
+    </div>
+    <div class="annotation" style="margin-top: var(--s4)">Radius: 2px only. No rounded corners beyond 2px — sharp edges reinforce precision.</div>
+  </div>
+
+  <!-- COMPONENTS -->
+  <div class="section">
+    <div class="section-label">Components — Buttons</div>
+    <div class="row" style="align-items: center;">
+      <div class="col">
+        <button class="btn btn-primary">Launch Swarm</button>
+        <div class="annotation">Primary — white fill. One per screen.</div>
+      </div>
+      <div class="col">
+        <button class="btn btn-secondary">Configure</button>
+        <div class="annotation">Secondary — outlined.</div>
+      </div>
+      <div class="col">
+        <button class="btn btn-ghost">← Back</button>
+        <div class="annotation">Ghost — navigation only.</div>
+      </div>
+      <div class="col">
+        <button class="btn btn-danger">Abort Run</button>
+        <div class="annotation">Danger — error color, destructive actions.</div>
+      </div>
+      <div class="col">
+        <button class="btn btn-secondary btn-sm">Export</button>
+        <div class="annotation">Small — secondary actions.</div>
+      </div>
+      <div class="col">
+        <button class="btn btn-primary" disabled>Running…</button>
+        <div class="annotation">Disabled state.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Components — Status Badges</div>
+    <div class="row" style="align-items: center; gap: var(--s3);">
+      <span class="badge badge-success">Success</span>
+      <span class="badge badge-pending">Running</span>
+      <span class="badge badge-warning">Parse Error</span>
+      <span class="badge badge-error">Failed</span>
+      <span class="badge badge-neutral">Idle</span>
+    </div>
+    <div class="annotation" style="margin-top: var(--s3)">The dot is a signal. Color means state. No icons, no emoji.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Components — Inputs</div>
+    <div class="row">
+      <div class="col">
+        <div class="input-group">
+          <div class="input-label">Prompt</div>
+          <input class="input" type="text" placeholder="Should AI be regulated?">
+        </div>
+      </div>
+      <div class="col">
+        <div class="input-group">
+          <div class="input-label">Agent Count</div>
+          <input class="input" type="number" value="100" style="width: 140px;">
+        </div>
+      </div>
+    </div>
+    <div class="annotation" style="margin-top: var(--s3)">Border brightens on focus. No shadows, no glow. Input background is --900.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Components — Cards</div>
+    <div class="row">
+      <div class="card" style="width: 280px;">
+        <div class="t-label" style="margin-bottom: var(--s4)">Swarm Summary</div>
+        <div class="stat-block">
+          <div class="stat-value">61%</div>
+          <div class="stat-label">Agreement Rate</div>
+        </div>
+        <hr>
+        <div class="row" style="justify-content: space-between;">
+          <div><div style="font-size:20px; font-weight:700">97</div><div class="stat-label">Completed</div></div>
+          <div><div style="font-size:20px; font-weight:700; color: var(--error)">3</div><div class="stat-label">Errors</div></div>
+          <div><div style="font-size:20px; font-weight:700">843ms</div><div class="stat-label">Avg Latency</div></div>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-header">
+          <div class="agent-id">AGENT_042</div>
+          <span class="badge badge-success" style="font-size:9px; padding: 2px 6px;">✓</span>
+        </div>
+        <div class="agent-model">gpt-4o-mini</div>
+        <div class="agent-meta">openai · t=0.7 · 843ms</div>
+        <hr>
+        <div style="font-size: 12px; color: var(--300)">
+          <span class="badge badge-success" style="font-size:9px">yes</span>
+          <span style="color: var(--500); margin-left: 6px;">conf: 0.82</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill success" style="width: 82%"></div></div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-header">
+          <div class="agent-id">AGENT_077</div>
+          <span class="badge badge-error" style="font-size:9px; padding: 2px 6px;">✗</span>
+        </div>
+        <div class="agent-model">mistral-medium</div>
+        <div class="agent-meta">mistral · t=1.2 · timeout</div>
+        <hr>
+        <div style="font-size: 11px; color: var(--600)">parse_error: invalid json</div>
+        <div class="progress-track"><div class="progress-fill" style="width: 0%; background: var(--error)"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Components — Data Table</div>
+    <div class="card-tight">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>Model</th>
+            <th>Verdict</th>
+            <th>Confidence</th>
+            <th>Latency</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color: var(--600)">agent_001</td>
+            <td>gpt-4o-mini</td>
+            <td><span class="badge badge-success">yes</span></td>
+            <td>0.91</td>
+            <td>612ms</td>
+            <td><span class="badge badge-success">success</span></td>
+          </tr>
+          <tr>
+            <td style="color: var(--600)">agent_002</td>
+            <td>llama3-8b</td>
+            <td><span class="badge badge-error">no</span></td>
+            <td>0.55</td>
+            <td>201ms</td>
+            <td><span class="badge badge-success">success</span></td>
+          </tr>
+          <tr>
+            <td style="color: var(--600)">agent_003</td>
+            <td>claude-haiku</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td><span class="badge badge-error">error</span></td>
+          </tr>
+          <tr>
+            <td style="color: var(--600)">agent_004</td>
+            <td>mixtral-8x7b</td>
+            <td><span class="badge badge-neutral">abstain</span></td>
+            <td>0.33</td>
+            <td>388ms</td>
+            <td><span class="badge badge-warning">parse_error</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Components — Progress & Consensus</div>
+    <div class="col" style="gap: var(--s5)">
+
+      <div>
+        <div class="t-label" style="margin-bottom: var(--s3)">Swarm Progress — 73 / 100</div>
+        <div class="progress-track" style="height: 4px; width: 400px;">
+          <div class="progress-fill" style="width: 73%; background: var(--white)"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="t-label" style="margin-bottom: var(--s3)">Consensus Distribution</div>
+        <div class="consensus-bar" style="width: 400px; height: 12px;">
+          <div class="consensus-seg" style="flex: 61; background: var(--success);"></div>
+          <div class="consensus-seg" style="flex: 29; background: var(--error);"></div>
+          <div class="consensus-seg" style="flex: 7;  background: var(--500);"></div>
+          <div class="consensus-seg" style="flex: 3;  background: var(--800);"></div>
+        </div>
+        <div class="row" style="margin-top: var(--s3); gap: var(--s5);">
+          <span style="font-size:11px; color: var(--success)">● yes 61%</span>
+          <span style="font-size:11px; color: var(--error)">● no 29%</span>
+          <span style="font-size:11px; color: var(--500)">● abstain 7%</span>
+          <span style="font-size:11px; color: var(--700)">● error 3%</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="t-label" style="margin-bottom: var(--s3)">Live indicator</div>
+        <span class="t-mono"><span class="dot-live"></span>Swarm running — 47 agents completed</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Components — Skeleton Loading</div>
+    <div class="col" style="gap: var(--s3); width: 300px;">
+      <div class="skeleton" style="height: 14px; width: 60%;"></div>
+      <div class="skeleton" style="height: 32px; width: 100%;"></div>
+      <div class="skeleton" style="height: 14px; width: 80%;"></div>
+    </div>
+    <div class="annotation" style="margin-top: var(--s3)">Use while agents are still coming in. Never spinners — skeleton only.</div>
+  </div>
+
+  <!-- RULES -->
+  <div class="section">
+    <div class="section-label">Rules</div>
+    <div class="card" style="max-width: 600px;">
+      <div class="col" style="gap: var(--s4);">
+        <div><span style="color: var(--white)">01.</span> <span style="color: var(--400)">Black/white/grey for everything structural. Color is reserved for status only — don't use it for branding, decoration, or emphasis.</span></div>
+        <div><span style="color: var(--white)">02.</span> <span style="color: var(--400)">IBM Plex Mono everywhere. IBM Plex Sans only for long prose passages.</span></div>
+        <div><span style="color: var(--white)">03.</span> <span style="color: var(--400)">All text is uppercase + tracked when it's a label. Sentence case for everything else.</span></div>
+        <div><span style="color: var(--white)">04.</span> <span style="color: var(--400)">Border radius: 2px maximum. No pill buttons. No rounded cards.</span></div>
+        <div><span style="color: var(--white)">05.</span> <span style="color: var(--400)">Borders: 1px solid. Two weights — --700 for primary, --800 for subtle/nested.</span></div>
+        <div><span style="color: var(--white)">06.</span> <span style="color: var(--400)">No box shadows. Depth is created with background tones (--black, --900, --800).</span></div>
+        <div><span style="color: var(--white)">07.</span> <span style="color: var(--400)">One primary button per screen. Everything else is secondary or ghost.</span></div>
+        <div><span style="color: var(--white)">08.</span> <span style="color: var(--400)">Numbers are data. Make them big. Let them breathe.</span></div>
+        <div><span style="color: var(--white)">09.</span> <span style="color: var(--400)">Error states use color sparingly — error text, not error backgrounds. Avoid alarming the user.</span></div>
+        <div><span style="color: var(--white)">10.</span> <span style="color: var(--400)">When in doubt, remove. If it doesn't carry information, it shouldn't be there.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAILWIND MAPPING -->
+  <div class="section">
+    <div class="section-label">Tailwind Config Mapping</div>
+    <div class="code">
+<span class="c">// tailwind.config.js — extend colors with your tokens</span>
+<span class="k">colors</span>: {
+  black: <span class="s">'#0a0a0a'</span>,
+  <span class="s">'950'</span>: <span class="s">'#111111'</span>,
+  <span class="s">'900'</span>: <span class="s">'#1a1a1a'</span>,
+  <span class="s">'800'</span>: <span class="s">'#2a2a2a'</span>,
+  <span class="s">'700'</span>: <span class="s">'#3d3d3d'</span>,
+  <span class="s">'500'</span>: <span class="s">'#666666'</span>,
+  <span class="s">'400'</span>: <span class="s">'#999999'</span>,
+  <span class="s">'300'</span>: <span class="s">'#cccccc'</span>,
+  white: <span class="s">'#fafafa'</span>,
+  <span class="c">// Status — these are the only colors</span>
+  success: <span class="s">'#22c55e'</span>,
+  warning: <span class="s">'#f59e0b'</span>,
+  error:   <span class="s">'#ef4444'</span>,
+  pending: <span class="s">'#3b82f6'</span>,
+}
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
