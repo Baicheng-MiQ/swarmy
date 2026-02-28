@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import json
 import os
 import uuid
@@ -71,11 +72,14 @@ ONE_YEAR_AGO = int(datetime(2025, 1, 1, tzinfo=timezone.utc).timestamp())
 
 http_client: httpx.AsyncClient
 
+# Hold strong references to background tasks so they aren't garbage-collected
+_background_tasks: set[asyncio.Task] = set()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global http_client
-    http_client = httpx.AsyncClient()
+    http_client = httpx.AsyncClient(timeout=httpx.Timeout(120.0))
     await init_db()
     yield
     await http_client.aclose()
@@ -192,8 +196,8 @@ async def run_swarm(
         try:
             await update_agent(agent_id, status="working")
 
-            # Build per-agent messages: prepend persona if set
-            agent_messages = list(messages)
+            # Build per-agent messages: deep copy to avoid cross-agent mutation
+            agent_messages = copy.deepcopy(messages)
             persona = agent.get("persona")
             if persona:
                 agent_messages.insert(0, {"role": "system", "content": persona})
@@ -268,7 +272,7 @@ async def start_job(job_id: str):
 
     await update_job_status(job_id, "working")
 
-    asyncio.create_task(
+    task = asyncio.create_task(
         run_swarm(
             job_id=job_id,
             agents=job["agents"],
@@ -276,6 +280,8 @@ async def start_job(job_id: str):
             response_format=job["response_format"],
         )
     )
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
 
     return {"job_id": job_id, "status": "working"}
 

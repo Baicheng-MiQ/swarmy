@@ -8,6 +8,7 @@ async def send_chat(
     payload: dict,
 ) -> dict:
     """Send a single chat completion request, returning the result or error."""
+    payload = {**payload}  # shallow copy to avoid mutating caller's dict
     response_format = payload.get("response_format")
     if response_format is not None:
         has_json_mention = any(
@@ -15,10 +16,10 @@ async def send_chat(
             for m in payload.get("messages", [])
         )
         if not has_json_mention:
-            payload["messages"].insert(0, {
-                "role": "system",
-                "content": "Respond with valid JSON output.",
-            })
+            payload["messages"] = [
+                {"role": "system", "content": "Respond with valid JSON output."},
+                *payload["messages"],
+            ]
     response = await http_client.post(
         f"{base_url}/chat/completions",
         headers={"Authorization": f"Bearer {api_key}"},
