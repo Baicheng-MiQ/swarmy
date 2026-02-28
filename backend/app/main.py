@@ -232,6 +232,39 @@ async def run_swarm(
             content = message.get("content", "")
             reasoning = message.get("reasoning", None)
 
+            # Check for empty response
+            if not content or not content.strip():
+                await update_agent(
+                    agent_id,
+                    status="error",
+                    response=content,
+                    error="Empty response from model",
+                )
+                return
+
+            # Validate JSON if structured output was requested
+            if response_format is not None and content:
+                # Strip markdown code fences if present
+                stripped = content.strip()
+                if stripped.startswith("```"):
+                    lines = stripped.split("\n")
+                    # Remove first line (```json) and last line (```)
+                    lines = lines[1:]
+                    if lines and lines[-1].strip() == "```":
+                        lines = lines[:-1]
+                    stripped = "\n".join(lines).strip()
+                try:
+                    json.loads(stripped)
+                    content = stripped  # use the cleaned version
+                except json.JSONDecodeError as e:
+                    await update_agent(
+                        agent_id,
+                        status="error",
+                        response=content,
+                        error=f"Invalid JSON in structured output: {e}",
+                    )
+                    return
+
             usage = result.get("usage", {})
             input_tokens = usage.get("prompt_tokens")
             output_tokens = usage.get("completion_tokens")
