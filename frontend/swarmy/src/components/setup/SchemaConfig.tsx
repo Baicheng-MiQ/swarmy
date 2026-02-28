@@ -1,54 +1,72 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { DEFAULT_SCHEMA } from '../../constants'
 import type { ResponseFormat } from '../../types'
+import { SchemaBuilder } from '../schema-builder/SchemaBuilder'
+import type { SchemaDefinition } from '../schema-builder/types/schema'
 
 interface SchemaConfigProps {
   value: ResponseFormat | null
   onChange: (value: ResponseFormat | null) => void
 }
 
-export function SchemaConfig({ value, onChange }: SchemaConfigProps) {
-  const [mode, setMode] = useState<'default' | 'custom'>(value === null ? 'default' : 'default')
-  const [customText, setCustomText] = useState('')
-  const [parseError, setParseError] = useState<string | null>(null)
+/** Convert our default schema into SchemaBuilder's internal format */
+const DEFAULT_BUILDER_SCHEMA: SchemaDefinition = {
+  properties: [
+    {
+      name: 'verdict',
+      type: 'string',
+      description: 'Your vote on the question.',
+      required: true,
+      hasEnum: true,
+      enum: ['yes', 'no', 'abstain'],
+    },
+    {
+      name: 'confidence',
+      type: 'number',
+      description: 'How confident you are in your verdict, from 0 to 1.',
+      required: true,
+      hasEnum: false,
+    },
+    {
+      name: 'reasoning',
+      type: 'string',
+      description: 'A short explanation of your reasoning.',
+      required: true,
+      hasEnum: false,
+    },
+  ],
+  additionalProperties: false,
+}
 
-  function handleModeChange(m: 'default' | 'custom') {
+export function SchemaConfig({ value, onChange }: SchemaConfigProps) {
+  const [mode, setMode] = useState<'default' | 'builder'>('default')
+
+  function handleModeChange(m: 'default' | 'builder') {
     setMode(m)
-    setParseError(null)
     if (m === 'default') {
       onChange(DEFAULT_SCHEMA)
-    } else {
-      // Try to parse existing custom text
-      if (customText.trim()) {
-        try {
-          const parsed = JSON.parse(customText)
-          onChange(parsed)
-        } catch {
-          onChange(null)
+    }
+    // builder mode: will fire via onSchemaChange callback
+  }
+
+  const handleBuilderChange = useCallback(
+    (schemaJson: string) => {
+      try {
+        const parsed = JSON.parse(schemaJson)
+        // parsed is { name, strict, schema } — wrap it into ResponseFormat
+        const rf: ResponseFormat = {
+          type: 'json_schema',
+          json_schema: parsed,
         }
-      } else {
-        onChange(null)
+        onChange(rf)
+      } catch {
+        // ignore parse errors during editing
       }
-    }
-  }
+    },
+    [onChange],
+  )
 
-  function handleCustomChange(text: string) {
-    setCustomText(text)
-    setParseError(null)
-    if (!text.trim()) {
-      onChange(null)
-      return
-    }
-    try {
-      const parsed = JSON.parse(text)
-      onChange(parsed)
-    } catch (e) {
-      setParseError(e instanceof Error ? e.message : 'Invalid JSON')
-      onChange(null)
-    }
-  }
-
-  // Initialize with default
+  // Initialize with default on first render
   if (value === null && mode === 'default') {
     onChange(DEFAULT_SCHEMA)
   }
@@ -64,10 +82,10 @@ export function SchemaConfig({ value, onChange }: SchemaConfigProps) {
           Default
         </button>
         <button
-          className={`toggle-btn ${mode === 'custom' ? 'toggle-btn-active' : ''}`}
-          onClick={() => handleModeChange('custom')}
+          className={`toggle-btn ${mode === 'builder' ? 'toggle-btn-active' : ''}`}
+          onClick={() => handleModeChange('builder')}
         >
-          Custom
+          Builder
         </button>
       </div>
 
@@ -76,18 +94,15 @@ export function SchemaConfig({ value, onChange }: SchemaConfigProps) {
           {JSON.stringify(DEFAULT_SCHEMA.json_schema.schema, null, 2)}
         </pre>
       ) : (
-        <>
-          <textarea
-            className="input input-textarea input-code"
-            placeholder='Paste a ResponseFormat JSON object…'
-            value={customText}
-            onChange={(e) => handleCustomChange(e.target.value)}
-            rows={8}
+        <div className="schema-builder-wrapper">
+          <SchemaBuilder
+            initialSchema={DEFAULT_BUILDER_SCHEMA}
+            initialSchemaName="democracy_vote"
+            initialStrictMode={true}
+            showOutput={true}
+            onSchemaChange={handleBuilderChange}
           />
-          {parseError && (
-            <div className="field-error">{parseError}</div>
-          )}
-        </>
+        </div>
       )}
     </div>
   )

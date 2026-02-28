@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&family=IBM+Plex+Sans:wght@300;400;500&display=swap');
+@import "tailwindcss";
 
 @theme {
   --color-black: #0a0a0a;
@@ -19,6 +19,28 @@
   --color-pending: #3b82f6;
   --font-mono: 'IBM Plex Mono', monospace;
   --font-sans: 'IBM Plex Sans', sans-serif;
+
+  /* shadcn/ui color tokens — dark theme for schema builder */
+  --color-background: #0a0a0a;
+  --color-foreground: #fafafa;
+  --color-card: #111111;
+  --color-card-foreground: #fafafa;
+  --color-popover: #111111;
+  --color-popover-foreground: #fafafa;
+  --color-primary: #fafafa;
+  --color-primary-foreground: #0a0a0a;
+  --color-secondary: #2a2a2a;
+  --color-secondary-foreground: #fafafa;
+  --color-muted: #1a1a1a;
+  --color-muted-foreground: #999999;
+  --color-accent: #2a2a2a;
+  --color-accent-foreground: #fafafa;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #fafafa;
+  --color-border: #3d3d3d;
+  --color-input: #3d3d3d;
+  --color-ring: #cccccc;
+  --radius: 2px;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

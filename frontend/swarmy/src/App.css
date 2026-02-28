@@ -732,3 +732,251 @@
   align-items: center;
   gap: 4px;
 }
+
+/* ── Schema Builder Integration ── */
+.schema-builder-wrapper {
+  border: 1px solid var(--color-n-800);
+  overflow: hidden;
+}
+
+/* Root */
+.sb-root {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-n-300);
+  background: var(--color-n-950);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Header */
+.sb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-n-800);
+}
+
+.sb-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.sb-name-input {
+  max-width: 200px;
+  font-size: 12px !important;
+}
+
+.sb-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-n-500);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Properties */
+.sb-properties {
+  display: flex;
+  flex-direction: column;
+}
+
+.sb-property {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-n-800);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sb-property:last-child {
+  border-bottom: none;
+}
+
+.sb-property-nested {
+  margin-left: 24px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-n-850, #222);
+}
+
+.sb-property-error {
+  border-left: 2px solid var(--color-error);
+  padding-left: 12px;
+}
+
+.sb-errors {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--color-error);
+}
+
+/* Property row */
+.sb-property-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sb-grip {
+  cursor: grab;
+  color: var(--color-n-500);
+  padding: 2px;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+}
+
+.sb-grip:active {
+  cursor: grabbing;
+}
+
+.sb-grip:hover {
+  color: var(--color-n-300);
+}
+
+.sb-name-field {
+  flex: 1;
+  min-width: 80px;
+  font-size: 12px !important;
+}
+
+.sb-type-field {
+  width: 100px;
+  flex-shrink: 0;
+  font-size: 11px !important;
+}
+
+.sb-desc-field {
+  margin-left: 26px;
+  font-size: 11px !important;
+  color: var(--color-n-400);
+}
+
+.sb-delete {
+  color: var(--color-n-500);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.sb-delete:hover {
+  color: var(--color-error);
+}
+
+/* Enum */
+.sb-enum {
+  margin-left: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sb-enum-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sb-enum-input-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.sb-enum-input-row .input {
+  flex: 1;
+  font-size: 11px !important;
+}
+
+.sb-enum-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.sb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-n-800);
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--color-n-300);
+}
+
+.sb-chip-x {
+  background: transparent;
+  border: none;
+  color: var(--color-n-500);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  line-height: 1;
+}
+
+.sb-chip-x:hover {
+  color: var(--color-white);
+}
+
+/* Array type */
+.sb-array-type {
+  margin-left: 26px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Object editor */
+.sb-object-editor {
+  margin-left: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-left: 1px solid var(--color-n-800);
+  padding-left: 12px;
+}
+
+.sb-object-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Output */
+.sb-output {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-n-800);
+}
+
+.sb-output-error {
+  opacity: 0.4;
+}
+
+.sb-output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.sb-output-pre {
+  font-size: 11px;
+  max-height: 300px;
+  overflow-y: auto;
+}
