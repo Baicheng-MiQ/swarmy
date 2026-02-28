@@ -1,5 +1,6 @@
 import asyncio
 import os
+import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -7,6 +8,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 import httpx
 from pydantic import BaseModel, Field
+
+from .chat import send_chat
 
 load_dotenv()
 
@@ -31,8 +34,10 @@ class ResponseFormat(BaseModel):
 
 
 class ChatRequest(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     model: str
     messages: list[Message]
+    temperature: float | None = None
     response_format: ResponseFormat | None = None
 
 # Unix timestamp for Jan 1, 2025
@@ -97,45 +102,18 @@ async def chat(request: ChatRequest):
     if not OPENROUTER_API_KEY:
         raise HTTPException(status_code=401, detail="OPENROUTER_API_KEY is not configured")
     payload = request.model_dump(exclude_none=True, by_alias=True)
-    # Some providers require "json" to appear in messages when using response_format
-    if request.response_format is not None:
-        has_json_mention = any("json" in m.content.lower() for m in request.messages)
-        if not has_json_mention:
-            payload["messages"].insert(0, {
-                "role": "system",
-                "content": "Respond with valid JSON output.",
-            })
-    response = await http_client.post(
-        f"{OPENROUTER_BASE_URL}/chat/completions",
-        headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"},
-        json=payload,
+    result = await send_chat(
+        http_client,
+        OPENROUTER_BASE_URL,
+        OPENROUTER_API_KEY,
+        payload,
     )
-    if response.status_code != 200:
+    if "error" in result:
         raise HTTPException(
-            status_code=response.status_code,
-            detail=response.json(),
+            status_code=result["status_code"],
+            detail=result["error"],
         )
-    return response.json()
-
-
-async def _send_chat(request: ChatRequest) -> dict:
-    """Send a single chat completion request, returning the result or error."""
-    payload = request.model_dump(exclude_none=True, by_alias=True)
-    if request.response_format is not None:
-        has_json_mention = any("json" in m.content.lower() for m in request.messages)
-        if not has_json_mention:
-            payload["messages"].insert(0, {
-                "role": "system",
-                "content": "Respond with valid JSON output.",
-            })
-    response = await http_client.post(
-        f"{OPENROUTER_BASE_URL}/chat/completions",
-        headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"},
-        json=payload,
-    )
-    if response.status_code != 200:
-        return {"error": response.json(), "status_code": response.status_code}
-    return response.json()
+    return result
 
 
 @app.post("/chat_batch")
@@ -143,5 +121,13 @@ async def chat_batch(requests: list[ChatRequest]):
     """Send multiple chat completion requests in parallel."""
     if not OPENROUTER_API_KEY:
         raise HTTPException(status_code=401, detail="OPENROUTER_API_KEY is not configured")
-    results = await asyncio.gather(*[_send_chat(r) for r in requests])
+    async def _do(r: ChatRequest):
+        payload = r.model_dump(exclude_none=True, by_alias=True)
+        return await send_chat(
+            http_client,
+            OPENROUTER_BASE_URL,
+            OPENROUTER_API_KEY,
+            payload,
+        )
+    results = await asyncio.gather(*[_do(r) for r in requests])
     return {"results": list(results)}
