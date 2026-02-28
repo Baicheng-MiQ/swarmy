@@ -1,10 +1,26 @@
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 import httpx
+from pydantic import BaseModel
+
+load_dotenv()
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+
+
+class Message(BaseModel):
+    role: str
+    content: str
+
+
+class ChatRequest(BaseModel):
+    model: str
+    messages: list[Message]
 
 # Unix timestamp for Jan 1, 2025
 ONE_YEAR_AGO = int(datetime(2025, 1, 1, tzinfo=timezone.utc).timestamp())
@@ -60,3 +76,21 @@ async def get_structured_text_models():
         and not any(kw in model.get("name", "").lower() for kw in ("video", "image", "audio"))
     ]
     return {"data": filtered}
+
+
+@app.post("/chat")
+async def chat(request: ChatRequest):
+    """Send a chat completion request to a model via OpenRouter."""
+    if not OPENROUTER_API_KEY:
+        raise HTTPException(status_code=401, detail="OPENROUTER_API_KEY is not configured")
+    response = await http_client.post(
+        f"{OPENROUTER_BASE_URL}/chat/completions",
+        headers={"Authorization": f"Bearer {OPENROUTER_API_KEY}"},
+        json=request.model_dump(),
+    )
+    if response.status_code != 200:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=response.json(),
+        )
+    return response.json()
