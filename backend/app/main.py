@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import uuid
 from contextlib import asynccontextmanager
@@ -10,7 +11,13 @@ import httpx
 from pydantic import BaseModel, Field
 
 from .chat import send_chat
-from .db import init_db, create_job as db_create_job
+from .db import (
+    init_db,
+    create_job as db_create_job,
+    get_job as db_get_job,
+    update_job_status,
+    update_agent,
+)
 
 load_dotenv()
 
@@ -169,3 +176,107 @@ async def create_job(request: CreateJobRequest) -> CreateJobResponse:
         agents=agents,
     )
     return CreateJobResponse(**result)
+
+
+async def run_swarm(
+    job_id: str,
+    agents: list[dict],
+    messages: list[dict],
+    response_format: dict | None,
+) -> None:
+    """Background task: run all agents in parallel, update DB as results arrive."""
+
+    async def run_single_agent(agent: dict) -> None:
+        agent_id = agent["agent_id"]
+        try:
+            await update_agent(agent_id, status="working")
+
+            payload: dict = {
+                "model": agent["model_name"],
+                "messages": messages,
+            }
+            if agent.get("temperature") is not None:
+                payload["temperature"] = agent["temperature"]
+            if response_format is not None:
+                payload["response_format"] = response_format
+
+            result = await send_chat(
+                http_client,
+                OPENROUTER_BASE_URL,
+                OPENROUTER_API_KEY,
+                payload,
+            )
+
+            if "error" in result:
+                await update_agent(
+                    agent_id,
+                    status="error",
+                    error=json.dumps(result["error"]) if isinstance(result["error"], dict) else str(result["error"]),
+                )
+                return
+
+            # Parse OpenRouter response
+            choice = result.get("choices", [{}])[0]
+            message = choice.get("message", {})
+            content = message.get("content", "")
+            reasoning = message.get("reasoning", None)
+
+            usage = result.get("usage", {})
+            input_tokens = usage.get("prompt_tokens")
+            output_tokens = usage.get("completion_tokens")
+
+            # OpenRouter may provide cost in the response or in usage
+            cost = None
+            if "usage" in result and "cost" in result["usage"]:
+                cost = result["usage"]["cost"]
+
+            await update_agent(
+                agent_id,
+                status="done",
+                response=content,
+                reasoning=reasoning,
+                input_token=input_tokens,
+                output_token=output_tokens,
+                cost=cost,
+            )
+        except Exception as exc:
+            await update_agent(
+                agent_id,
+                status="error",
+                error=str(exc),
+            )
+
+    await asyncio.gather(*[run_single_agent(a) for a in agents])
+    await update_job_status(job_id, "done")
+
+
+@app.post("/start_job/{job_id}", status_code=202)
+async def start_job(job_id: str):
+    """Start running all agents for a job. Returns immediately; work happens in background."""
+    job = await db_get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job["status"] != "ready":
+        raise HTTPException(status_code=409, detail=f"Job is already '{job['status']}', expected 'ready'")
+
+    await update_job_status(job_id, "working")
+
+    asyncio.create_task(
+        run_swarm(
+            job_id=job_id,
+            agents=job["agents"],
+            messages=job["messages"],
+            response_format=job["response_format"],
+        )
+    )
+
+    return {"job_id": job_id, "status": "working"}
+
+
+@app.get("/job/{job_id}")
+async def get_job(job_id: str):
+    """Get current state of a job and all its agents."""
+    job = await db_get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
