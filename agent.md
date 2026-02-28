@@ -59,4 +59,59 @@ The backend lives in `backend/app/` with three modules:
 
 ## Frontend
 
-React + Vite + TypeScript scaffold (default Vite template, not yet implemented).
+React + Vite + TypeScript + Tailwind CSS. Two-view app with state-based view switching (no router).
+
+### Structure
+
+```
+frontend/swarmy/src/
+  types/index.ts          — TS interfaces (Model, Job, Agent, AgentConfig, SpawnSettings, etc.)
+  api/client.ts           — fetch wrappers (fetchModels, createJob, startJob, getJob)
+  constants.ts            — Default personas (8), default vote schema, spawn defaults
+  hooks/
+    useModels.ts          — Fetch & cache models from /api/models/structured
+    useJob.ts             — Job lifecycle: create → start → poll (1.5s) → stop on done
+  components/
+    Layout.tsx            — Header + content shell
+    shared/               — Reusable primitives (Button, StatusBadge, StatBlock, LiveIndicator, Skeleton)
+    setup/                — Setup view components
+      SetupView.tsx       — 2-phase orchestrator (Configure → Review)
+      PromptInput.tsx     — Prompt textarea
+      SchemaConfig.tsx    — Default/Custom JSON schema toggle
+      SpawnConfig.tsx     — Agent count, temperature range, persona pool
+      AgentList.tsx       — Editable spawned agent list
+      AgentCard.tsx       — Per-agent model/temp/persona editor
+      defaults.ts         — Default spawn settings constant
+    results/              — Results dashboard components
+      ResultsView.tsx     — Live polling dashboard
+      JobHeader.tsx       — Stats (done/total, cost, elapsed) + live indicator
+      ProgressTracker.tsx — 2px progress bar
+      AgentTable.tsx      — Sortable table with expandable rows for raw JSON responses
+  App.tsx                 — View switcher (setup | results)
+  App.css                 — All component styles (design system compliant)
+  index.css               — Tailwind + CSS custom properties (color tokens, fonts)
+```
+
+### Design System
+
+- **Philosophy:** Monochrome. Precise. Signal. Color is for status only.
+- **Palette:** Black (#0a0a0a) through white (#fafafa) in neutral steps. Status colors: success (#22c55e), warning (#f59e0b), error (#ef4444), pending (#3b82f6).
+- **Typography:** IBM Plex Mono everywhere. IBM Plex Sans only for long prose.
+- **Rules:** 2px max border-radius, 1px solid borders, no box shadows, shimmer skeletons (no spinners), one primary button per screen.
+
+### User Flow
+
+1. **Configure** — User types a prompt, selects response schema (default vote schema or custom JSON), sets swarm config: agent count (2–20), temperature range (evenly distributed), and persona pool (8 built-in + user-editable).
+2. **Spawn** — Click "Spawn Swarm" → client generates a diverse set of agents by round-robin picking models across provider families, linearly interpolating temperatures, and cycling personas.
+3. **Review** — Spawned agents appear as editable cards. User can change any agent's model, temperature, or persona, add/remove agents (min 2).
+4. **Start** — Click "Start Job" → calls POST `/api/create_job` then POST `/api/start_job/{job_id}`, transitions to results view.
+5. **Results** — Live polling dashboard: progress bar, stat blocks (done/total, cost, elapsed), and a data table showing status badge, model, persona, temperature, raw JSON response (truncated), and cost per agent. Click a row to expand full response + reasoning + token usage. "New Swarm" button resets to setup.
+
+### Key Details
+
+- Vite dev proxy: `/api/*` → `http://localhost:8000/*` (prefix stripped)
+- No router library — simple `useState<'setup' | 'results'>` view switching
+- No state management library — `useState` + props + custom hooks
+- Polling: 1.5s interval via `setInterval`, auto-stops when `job.status === 'done'`
+- Agent diversity: models grouped by provider family, round-robin selection maximizes cross-provider diversity
+- Default schema: `{ verdict: "yes"|"no"|"abstain", confidence: 0-1, reasoning: string }`
