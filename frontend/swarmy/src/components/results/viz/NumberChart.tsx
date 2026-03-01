@@ -11,13 +11,14 @@ interface NumberChartProps {
 
 /** Bin continuous values into a histogram */
 function binValues(values: number[], binCount: number) {
-  if (values.length === 0) return []
+  if (values.length === 0 || binCount <= 0) return []
+  const safeBinCount = Math.max(1, Math.round(binCount))
   const min = Math.min(...values)
   const max = Math.max(...values)
   const range = max - min || 1
-  const step = range / binCount
+  const step = range / safeBinCount
 
-  const bins = Array.from({ length: binCount }, (_, i) => ({
+  const bins = Array.from({ length: safeBinCount }, (_, i) => ({
     label: `${(min + i * step).toFixed(2)}`,
     rangeStart: min + i * step,
     rangeEnd: min + (i + 1) * step,
@@ -26,7 +27,8 @@ function binValues(values: number[], binCount: number) {
 
   for (const v of values) {
     let idx = Math.floor((v - min) / step)
-    if (idx >= binCount) idx = binCount - 1
+    if (idx >= safeBinCount) idx = safeBinCount - 1
+    if (idx < 0) idx = 0
     bins[idx].count++
   }
 
@@ -53,7 +55,9 @@ export function NumberChart({ field, rows }: NumberChartProps) {
   }, [values])
 
   const isFloat = field.type === 'float'
-  const binCount = isFloat ? 10 : Math.min(10, (stats?.max ?? 0) - (stats?.min ?? 0) + 1) || 6
+  const binCount = isFloat
+    ? 10
+    : Math.max(1, Math.min(10, (stats?.max ?? 0) - (stats?.min ?? 0) + 1)) || 6
 
   const histData = useMemo(() => {
     const bins = binValues(values, binCount)

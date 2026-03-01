@@ -136,7 +136,7 @@ async def get_structured_text_models():
 
     # Competitive large models
     "deepseek/deepseek-v3.2",
-    "z-ai/glm-5",
+    # "z-ai/glm-5",
     "x-ai/grok-4",
     "mistralai/mistral-large-2512",
     "nvidia/nemotron-nano-9b-v2:free"

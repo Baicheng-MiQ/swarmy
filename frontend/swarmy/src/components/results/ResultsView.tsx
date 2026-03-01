@@ -42,6 +42,20 @@ export function ResultsView({ job, isPolling, onReset, timedOut }: ResultsViewPr
         </div>
       )}
 
+      {/* Prompt */}
+      {job.messages.length > 0 && (
+        <section className="section">
+          <div className="section-label">Prompt</div>
+          <div className="prompt-display">
+            {job.messages
+              .filter((m) => m.role === 'user')
+              .map((m, i) => (
+                <p key={i}>{m.content}</p>
+              ))}
+          </div>
+        </section>
+      )}
+
       {/* Agent status dots */}
       <ProgressTracker agents={job.agents} />
 
