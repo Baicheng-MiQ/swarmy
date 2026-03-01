@@ -50,12 +50,6 @@ export function ResultsView({ job, isPolling, onReset, timedOut }: ResultsViewPr
         <JobHeader job={job} elapsed={elapsed} />
       </section>
 
-      {/* Agent results table */}
-      <section className="section">
-        <div className="section-label">Agent Results</div>
-        <AgentTable agents={job.agents} responseFormat={job.response_format} />
-      </section>
-
       {/* Swarm visualization */}
       {job.response_format && (
         <section className="section">
@@ -63,6 +57,12 @@ export function ResultsView({ job, isPolling, onReset, timedOut }: ResultsViewPr
           <SwarmViz agents={job.agents} responseFormat={job.response_format} />
         </section>
       )}
+
+      {/* Agent results table */}
+      <section className="section">
+        <div className="section-label">Agent Results</div>
+        <AgentTable agents={job.agents} responseFormat={job.response_format} />
+      </section>
 
       {/* Footer */}
       <div className="action-bar">
