@@ -112,7 +112,8 @@ export function SpawnConfig({ value, onChange }: SpawnConfigProps) {
         </label>
         <div className="persona-chips">
           {value.personas.map((p, i) => (
-            <span key={i} className="chip">
+            <span key={i} className="chip" title={p}>
+              <span className="chip-icon">👤</span>
               <span className="chip-text">{p}</span>
               <button className="chip-remove" onClick={() => removePersona(i)}>
                 ×

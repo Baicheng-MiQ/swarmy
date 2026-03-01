@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import type { AgentConfig, Model, SpawnSettings, ResponseFormat, CreateJobRequest } from '../../types'
 import { DEFAULT_SCHEMA } from '../../constants'
 import { PromptInput } from './PromptInput'
 import { SchemaConfig } from './SchemaConfig'
 import { SpawnConfig } from './SpawnConfig'
+import { ModelSelector } from './ModelSelector'
 import { defaultSpawnSettings } from './defaults'
 import { AgentList } from './AgentList'
 import { Button } from '../shared/Button'
@@ -84,12 +85,24 @@ export function SetupView({
   const [schema, setSchema] = useState<ResponseFormat | null>(DEFAULT_SCHEMA)
   const [spawnSettings, setSpawnSettings] = useState<SpawnSettings>(defaultSpawnSettings)
   const [agents, setAgents] = useState<AgentConfig[]>([])
+  // null = user hasn't customized yet → treat as "all selected"
+  const [selectedModelIds, setSelectedModelIds] = useState<Set<string> | null>(null)
+
+  const effectiveSelected = useMemo(
+    () => selectedModelIds ?? new Set(models.map((m) => m.id)),
+    [selectedModelIds, models],
+  )
+
+  const selectedModels = useMemo(
+    () => models.filter((m) => effectiveSelected.has(m.id)),
+    [models, effectiveSelected],
+  )
 
   const handleSpawn = useCallback(() => {
-    const spawned = generateSwarm(models, spawnSettings)
+    const spawned = generateSwarm(selectedModels, spawnSettings)
     setAgents(spawned)
     setPhase('review')
-  }, [models, spawnSettings])
+  }, [selectedModels, spawnSettings])
 
   const handleStart = useCallback(() => {
     const request: CreateJobRequest = {
@@ -104,7 +117,7 @@ export function SetupView({
     onLaunch(request)
   }, [prompt, schema, agents, onLaunch])
 
-  const canSpawn = prompt.trim().length > 0 && spawnSettings.count >= 2 && !modelsLoading && models.length > 0
+  const canSpawn = prompt.trim().length > 0 && spawnSettings.count >= 2 && !modelsLoading && selectedModels.length > 0
 
   if (modelsLoading) {
     return (
@@ -147,6 +160,16 @@ export function SetupView({
           <section className="section">
             <div className="section-label">Response Format</div>
             <SchemaConfig value={schema} onChange={setSchema} />
+          </section>
+
+          {/* Model Selection */}
+          <section className="section">
+            <div className="section-label">Models</div>
+            <ModelSelector
+              models={models}
+              selected={effectiveSelected}
+              onChange={setSelectedModelIds}
+            />
           </section>
 
           {/* Spawn Config */}
