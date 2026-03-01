@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import type { Agent } from '../../types'
 import { StatusBadge } from '../shared/StatusBadge'
 import { Skeleton } from '../shared/Skeleton'
+import { JsonVisualizer } from 'react-json-beautifier'
 
 interface AgentTableProps {
   agents: Agent[]
@@ -107,7 +108,7 @@ function AgentRow({
               {hasResponse && (
                 <div className="detail-section">
                   <div className="field-label-sm">Response</div>
-                  <pre className="code-block">{formatJson(agent.response!)}</pre>
+                  <JsonResponse raw={agent.response!} />
                 </div>
               )}
               {agent.reasoning && (
@@ -138,10 +139,48 @@ function AgentRow({
   )
 }
 
-function formatJson(s: string): string {
-  try {
-    return JSON.stringify(JSON.parse(s), null, 2)
-  } catch {
-    return s
+const JSON_DARK_STYLES = `
+  .jv-dark, .jv-dark * { color: #e5e5e5 !important; }
+  .jv-dark [class*="font-semibold"] { color: #fafafa !important; }
+  .jv-dark [class*="font-medium"] { color: #fafafa !important; }
+  .jv-dark .json-entry { border-radius: 6px; padding: 6px 8px; }
+  .jv-dark .json-entry:hover { background: #2a2a2a !important; }
+  .jv-dark .json-card { background: #1a1a1a !important; border: 1px solid #2a2a2a !important; border-radius: 8px; padding: 12px; }
+  .jv-dark [class*="bg-blue-50"] { background: rgba(59,130,246,0.15) !important; }
+  .jv-dark [class*="bg-green-50"] { background: rgba(34,197,94,0.15) !important; }
+  .jv-dark [class*="bg-red-50"] { background: rgba(239,68,68,0.15) !important; }
+  .jv-dark [class*="bg-purple-50"] { background: rgba(168,85,247,0.15) !important; }
+  .jv-dark [class*="bg-indigo-50"] { background: rgba(99,102,241,0.15) !important; }
+  .jv-dark [class*="bg-orange-50"] { background: rgba(249,115,22,0.15) !important; }
+  .jv-dark [class*="text-blue-"] { color: #60a5fa !important; }
+  .jv-dark [class*="text-green-"] { color: #4ade80 !important; }
+  .jv-dark [class*="text-red-"] { color: #f87171 !important; }
+  .jv-dark [class*="text-purple-"] { color: #c084fc !important; }
+  .jv-dark [class*="text-indigo-"] { color: #818cf8 !important; }
+  .jv-dark [class*="text-orange-"] { color: #fb923c !important; }
+  .jv-dark [class*="bg-secondary"] { background: #3d3d3d !important; }
+  .jv-dark [class*="bg-primary"] { background: #fafafa !important; }
+`
+
+function JsonResponse({ raw }: { raw: string }) {
+  const parsed = useMemo(() => {
+    try {
+      return JSON.parse(raw)
+    } catch {
+      return null
+    }
+  }, [raw])
+
+  if (parsed !== null && typeof parsed === 'object') {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: JSON_DARK_STYLES }} />
+        <div className="jv-dark">
+          <JsonVisualizer data={parsed} />
+        </div>
+      </>
+    )
   }
+
+  return <pre className="code-block">{raw}</pre>
 }
