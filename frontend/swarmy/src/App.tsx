@@ -12,7 +12,7 @@ type View = 'setup' | 'results'
 function App() {
   const [view, setView] = useState<View>('setup')
   const { models, loading: modelsLoading, error: modelsError, retry } = useModels()
-  const { job, isPolling, error: jobError, launching, launch, reset } = useJob()
+  const { job, isPolling, error: jobError, launching, launch, reset, timedOut } = useJob()
 
   const handleLaunch = useCallback(
     async (request: CreateJobRequest) => {
@@ -41,7 +41,7 @@ function App() {
       )}
 
       {view === 'results' && job && (
-        <ResultsView job={job} isPolling={isPolling} onReset={handleReset} />
+        <ResultsView job={job} isPolling={isPolling} onReset={handleReset} timedOut={timedOut} />
       )}
 
       {view === 'results' && !job && jobError && (

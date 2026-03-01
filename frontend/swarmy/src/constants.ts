@@ -43,3 +43,4 @@ export const DEFAULT_AGENT_COUNT = 20
 export const DEFAULT_TEMP_MIN = 0.0
 export const DEFAULT_TEMP_MAX = 1.0
 export const POLL_INTERVAL_MS = 1000
+export const JOB_TIMEOUT_MS = 90_000

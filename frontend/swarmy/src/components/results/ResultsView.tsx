@@ -9,6 +9,7 @@ interface ResultsViewProps {
   job: Job
   isPolling: boolean
   onReset: () => void
+  timedOut?: boolean
 }
 
 function useElapsed(startTime: number, isRunning: boolean): string {
@@ -26,12 +27,20 @@ function useElapsed(startTime: number, isRunning: boolean): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-export function ResultsView({ job, isPolling, onReset }: ResultsViewProps) {
+export function ResultsView({ job, isPolling, onReset, timedOut }: ResultsViewProps) {
   const [startTime] = useState(() => Date.now())
   const elapsed = useElapsed(startTime, isPolling)
 
   return (
     <>
+      {/* Timeout banner */}
+      {timedOut && (
+        <div className="timeout-banner">
+          <span className="badge badge-error">Timeout</span>
+          <span className="timeout-text">Job exceeded the 1:30 time limit. Unfinished agents were stopped.</span>
+        </div>
+      )}
+
       {/* Agent status dots */}
       <ProgressTracker agents={job.agents} />
 

@@ -319,6 +319,23 @@
   flex: 1;
 }
 
+/* ── Timeout banner ── */
+.timeout-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 2px;
+  margin-bottom: 32px;
+}
+
+.timeout-text {
+  font-size: 12px;
+  color: var(--color-n-300);
+}
+
 /* ── Skeleton ── */
 @keyframes shimmer {
   0% { background-position: -400px 0; }
