@@ -48,8 +48,8 @@ export function SpawnConfig({ value, onChange }: SpawnConfigProps) {
           <span className="count-value">{value.count}</span>
           <button
             className="count-btn"
-            onClick={() => update({ count: Math.min(20, value.count + 1) })}
-            disabled={value.count >= 20}
+            onClick={() => update({ count: Math.min(1000, value.count + 1) })}
+            disabled={value.count >= 1000}
           >
             +
           </button>
