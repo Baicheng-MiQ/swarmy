@@ -43,7 +43,7 @@ export function ResultsView({ job, isPolling, onReset }: ResultsViewProps) {
       {/* Agent results table */}
       <section className="section">
         <div className="section-label">Agent Results</div>
-        <AgentTable agents={job.agents} />
+        <AgentTable agents={job.agents} responseFormat={job.response_format} />
       </section>
 
       {/* Footer */}

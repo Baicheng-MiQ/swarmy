@@ -149,6 +149,27 @@
   font-size: 12px;
 }
 
+/* ── Schema conformance ── */
+.schema-pass {
+  color: var(--color-success);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.schema-fail {
+  color: var(--color-error, #ef4444);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: help;
+}
+
+.schema-error-list {
+  list-style: disc;
+  padding-left: 18px;
+  margin: 4px 0 0;
+  font-size: 12px;
+}
+
 /* ── Model count ── */
 .model-count {
   display: flex;

@@ -1,11 +1,15 @@
 import { useState, useMemo } from 'react'
-import type { Agent } from '../../types'
+import Ajv from 'ajv'
+import type { Agent, ResponseFormat } from '../../types'
 import { StatusBadge } from '../shared/StatusBadge'
 import { Skeleton } from '../shared/Skeleton'
 import { JsonVisualizer } from 'react-json-beautifier'
 
+const ajv = new Ajv({ allErrors: true, strict: false })
+
 interface AgentTableProps {
   agents: Agent[]
+  responseFormat?: ResponseFormat | null
 }
 
 /** Truncate a string to maxLen chars */
@@ -20,7 +24,7 @@ function shortModel(id: string): string {
   return parts[parts.length - 1] ?? id
 }
 
-type SortKey = 'status' | 'model' | 'persona' | 'temp' | 'response' | 'cost'
+type SortKey = 'status' | 'model' | 'persona' | 'temp' | 'response' | 'schema' | 'cost'
 type SortDir = 'asc' | 'desc'
 
 function SortArrow({ active, dir }: { active: boolean; dir: SortDir }) {
@@ -28,10 +32,33 @@ function SortArrow({ active, dir }: { active: boolean; dir: SortDir }) {
   return <span className="sort-arrow">{dir === 'asc' ? '↑' : '↓'}</span>
 }
 
-export function AgentTable({ agents }: AgentTableProps) {
+type SchemaResult = { valid: true } | { valid: false; errors: string[] }
+
+function validateAgainstSchema(
+  response: string | null,
+  schema: Record<string, unknown> | undefined,
+): SchemaResult | null {
+  if (!schema || !response) return null
+  try {
+    const data = JSON.parse(response)
+    const validate = ajv.compile(schema)
+    const valid = validate(data)
+    if (valid) return { valid: true }
+    const errors = (validate.errors ?? []).map(
+      (e) => `${e.instancePath || '/'} ${e.message ?? 'invalid'}`,
+    )
+    return { valid: false, errors }
+  } catch {
+    return { valid: false, errors: ['Response is not valid JSON'] }
+  }
+}
+
+export function AgentTable({ agents, responseFormat }: AgentTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [sortKey, setSortKey] = useState<SortKey>('model')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
+
+  const schema = responseFormat?.json_schema?.schema
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -41,6 +68,14 @@ export function AgentTable({ agents }: AgentTableProps) {
       setSortDir('asc')
     }
   }
+
+  // Pre-compute schema validation results for all agents
+  const validationMap = useMemo(() => {
+    if (!schema) return new Map<string, SchemaResult | null>()
+    return new Map(
+      agents.map((a) => [a.agent_id, validateAgainstSchema(a.response, schema)]),
+    )
+  }, [agents, schema])
 
   const sorted = useMemo(() => {
     const statusOrder: Record<string, number> = { done: 0, error: 1, working: 2, ready: 3 }
@@ -67,24 +102,37 @@ export function AgentTable({ agents }: AgentTableProps) {
         case 'cost':
           cmp = (a.cost ?? 0) - (b.cost ?? 0)
           break
+        case 'schema': {
+          const va = validationMap.get(a.agent_id)
+          const vb = validationMap.get(b.agent_id)
+          const sa = va == null ? 0 : va.valid ? 1 : -1
+          const sb = vb == null ? 0 : vb.valid ? 1 : -1
+          cmp = sa - sb
+          break
+        }
       }
       return cmp * dir
     })
-  }, [agents, sortKey, sortDir])
+  }, [agents, sortKey, sortDir, validationMap])
+
+  const hasSchema = !!schema
+
+  const columns: [SortKey, string][] = [
+    ['status', 'Status'],
+    ['model', 'Model'],
+    ['persona', 'Persona'],
+    ['temp', 'Temp'],
+    ['response', 'Response'],
+    ...(hasSchema ? [['schema', 'Schema'] as [SortKey, string]] : []),
+    ['cost', 'Cost'],
+  ]
 
   return (
     <div className="card-tight">
       <table className="table">
         <thead>
           <tr>
-            {([
-              ['status', 'Status'],
-              ['model', 'Model'],
-              ['persona', 'Persona'],
-              ['temp', 'Temp'],
-              ['response', 'Response'],
-              ['cost', 'Cost'],
-            ] as [SortKey, string][]).map(([key, label]) => (
+            {columns.map(([key, label]) => (
               <th
                 key={key}
                 onClick={() => handleSort(key)}
@@ -105,6 +153,8 @@ export function AgentTable({ agents }: AgentTableProps) {
                 agent={agent}
                 isExpanded={isExpanded}
                 onToggle={() => setExpandedId(isExpanded ? null : agent.agent_id)}
+                schemaResult={validationMap.get(agent.agent_id) ?? null}
+                hasSchema={hasSchema}
               />
             )
           })}
@@ -118,13 +168,18 @@ function AgentRow({
   agent,
   isExpanded,
   onToggle,
+  schemaResult,
+  hasSchema,
 }: {
   agent: Agent
   isExpanded: boolean
   onToggle: () => void
+  schemaResult: SchemaResult | null
+  hasSchema: boolean
 }) {
   const hasResponse = agent.status === 'done' && agent.response
   const hasError = agent.status === 'error'
+  const colSpan = hasSchema ? 7 : 6
 
   return (
     <>
@@ -154,12 +209,28 @@ function AgentRow({
           )}
           {agent.status === 'ready' && <span className="cell-dim">—</span>}
         </td>
+        {hasSchema && (
+          <td>
+            {schemaResult == null ? (
+              <span className="cell-dim">—</span>
+            ) : schemaResult.valid ? (
+              <span className="schema-pass" title="Conforms to schema">✓</span>
+            ) : (
+              <span
+                className="schema-fail"
+                title={schemaResult.errors.join('\n')}
+              >
+                ✗
+              </span>
+            )}
+          </td>
+        )}
         <td>{agent.cost != null ? `$${agent.cost.toFixed(4)}` : '—'}</td>
       </tr>
 
       {isExpanded && (
         <tr className="detail-row">
-          <td colSpan={6}>
+          <td colSpan={colSpan}>
             <div className="agent-detail">
               {hasResponse && (
                 <div className="detail-section">
@@ -177,6 +248,16 @@ function AgentRow({
                 <div className="detail-section">
                   <div className="field-label-sm">Error</div>
                   <p className="cell-error">{agent.error}</p>
+                </div>
+              )}
+              {schemaResult && !schemaResult.valid && (
+                <div className="detail-section">
+                  <div className="field-label-sm">Schema Errors</div>
+                  <ul className="schema-error-list">
+                    {schemaResult.errors.map((err, i) => (
+                      <li key={i} className="cell-error">{err}</li>
+                    ))}
+                  </ul>
                 </div>
               )}
               <div className="detail-meta">
