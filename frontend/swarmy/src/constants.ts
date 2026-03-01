@@ -39,7 +39,7 @@ export const DEFAULT_SCHEMA: ResponseFormat = {
   },
 }
 
-export const DEFAULT_AGENT_COUNT = 100
+export const DEFAULT_AGENT_COUNT = 20
 export const DEFAULT_TEMP_MIN = 0.0
 export const DEFAULT_TEMP_MAX = 1.0
 export const POLL_INTERVAL_MS = 1000
