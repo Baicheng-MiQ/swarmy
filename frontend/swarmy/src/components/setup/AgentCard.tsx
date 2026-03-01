@@ -1,4 +1,5 @@
 import type { AgentConfig, Model } from '../../types'
+import { StatusBadge } from '../shared/StatusBadge'
 
 interface AgentCardProps {
   agent: AgentConfig
@@ -11,6 +12,7 @@ interface AgentCardProps {
 export function AgentCard({ agent, models, onChange, onRemove, canRemove }: AgentCardProps) {
   return (
     <div className="agent-card">
+      <StatusBadge status="ready" />
       <div className="agent-card-row">
         {/* Model */}
         <div className="field field-inline">

@@ -640,55 +640,87 @@
   gap: 8px;
 }
 
-.count-input {
+/* ── Agent Count Viz ── */
+
+.agent-count-viz {
   display: flex;
-  align-items: center;
-  gap: 0;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.count-btn {
-  font-family: var(--font-mono);
-  font-size: 16px;
-  font-weight: 500;
-  width: 36px;
-  height: 36px;
+.agent-dot-rect {
+  min-height: 24px;
+}
+
+.agent-dot-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 6px);
+  gap: 3px;
+}
+
+.agent-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #FFF;
+  opacity: 0.85;
+}
+
+@keyframes agent-dot-in {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 0.85; }
+}
+
+.agent-slider-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: var(--color-n-900);
-  color: var(--color-white);
-  border: 1px solid var(--color-n-700);
+  gap: 12px;
+}
+
+.agent-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-n-700);
+  outline: none;
   cursor: pointer;
-  transition: background 0.15s;
 }
 
-.count-btn:first-child {
-  border-radius: 2px 0 0 2px;
+.agent-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4ade80;
+  border: 2px solid var(--color-n-900);
+  cursor: pointer;
+  transition: transform 0.15s;
 }
 
-.count-btn:last-child {
-  border-radius: 0 2px 2px 0;
+.agent-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
 }
 
-.count-btn:hover:not(:disabled) {
-  background: var(--color-n-800);
+.agent-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4ade80;
+  border: 2px solid var(--color-n-900);
+  cursor: pointer;
 }
 
-.count-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.count-value {
+.agent-slider-value {
+  font-family: var(--font-mono);
   font-size: 20px;
   font-weight: 700;
-  min-width: 48px;
-  text-align: center;
-  background: var(--color-n-900);
-  border-top: 1px solid var(--color-n-700);
-  border-bottom: 1px solid var(--color-n-700);
-  height: 36px;
-  line-height: 34px;
+  color: var(--color-white);
+  min-width: 32px;
+  text-align: right;
 }
 
 .range-row {
@@ -769,10 +801,17 @@
 
 /* ── Agent Card (Setup) ── */
 .agent-card {
+  position: relative;
   background: var(--color-n-900);
   border: 1px solid var(--color-n-800);
   border-radius: 2px;
   padding: 16px;
+}
+
+.agent-card > .badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 
 .agent-card-row {
@@ -787,9 +826,21 @@
   margin-bottom: 16px;
 }
 
+/* ── Model Distribution Chart ── */
+.model-distribution {
+  background: var(--color-n-900);
+  border: 1px solid var(--color-n-800);
+  border-radius: 2px;
+  padding: 16px;
+}
+
+.model-distribution-chart {
+  height: 220px;
+}
+
 .agent-list-items {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 16px;
 }

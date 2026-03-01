@@ -37,32 +37,25 @@ export function SpawnConfig({ value, onChange }: SpawnConfigProps) {
       {/* Agent Count */}
       <div className="field">
         <label className="field-label">Agent Count</label>
-        <div className="count-input">
-          <button
-            className="count-btn"
-            onClick={() => update({ count: Math.max(1, value.count - 1) })}
-            disabled={value.count <= 1}
-          >
-            −
-          </button>
-          <input
-            type="number"
-            className="count-value"
-            value={value.count}
-            min={1}
-            max={1000}
-            onChange={(e) => {
-              const n = parseInt(e.target.value, 10)
-              if (!isNaN(n)) update({ count: Math.max(1, Math.min(1000, n)) })
-            }}
-          />
-          <button
-            className="count-btn"
-            onClick={() => update({ count: Math.min(1000, value.count + 1) })}
-            disabled={value.count >= 1000}
-          >
-            +
-          </button>
+        <div className="agent-count-viz">
+          <div className="agent-slider-row">
+            <input
+              type="range"
+              className="agent-slider"
+              min={1}
+              max={500}
+              value={value.count}
+              onChange={(e) => update({ count: parseInt(e.target.value, 10) })}
+            />
+            <span className="agent-slider-value">{value.count}</span>
+          </div>
+          <div className="agent-dot-rect">
+            <div className="agent-dot-grid">
+              {Array.from({ length: value.count }).map((_, i) => (
+                <span key={i} className="agent-dot" />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 

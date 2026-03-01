@@ -7,6 +7,7 @@ import { SpawnConfig } from './SpawnConfig'
 import { ModelSelector } from './ModelSelector'
 import { defaultSpawnSettings } from './defaults'
 import { AgentList } from './AgentList'
+import { ModelDistribution } from './ModelDistribution'
 import { Button } from '../shared/Button'
 import { Skeleton } from '../shared/Skeleton'
 
@@ -195,6 +196,12 @@ export function SetupView({
             <div className="card-tight">
               <p className="prompt-preview">{prompt}</p>
             </div>
+          </section>
+
+          {/* Model Distribution */}
+          <section className="section">
+            <div className="section-label">Model Distribution</div>
+            <ModelDistribution agents={agents} models={models} />
           </section>
 
           {/* Agent list */}
