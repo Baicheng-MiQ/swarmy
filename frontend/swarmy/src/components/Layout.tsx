@@ -19,7 +19,7 @@ export function Layout({ children }: LayoutProps) {
               ))}
             </div>
             <h1 className="header-title">
-              <span className="header-title-gradient">Swarmy</span>
+              <span className="header-title-gradient">🐝 Swarmy</span>
             </h1>
           <p className="header-subtitle">
             Spawn a swarm of agents, send the same prompt, and see if consensus emerges.

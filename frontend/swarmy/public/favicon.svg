@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <!-- Top hex -->
+  <polygon points="32,2 43,8 43,20 32,26 21,20 21,8" fill="url(#g1)" stroke="#92400e" stroke-width="1.5"/>
+  <!-- Middle-left hex -->
+  <polygon points="13,14 24,20 24,32 13,38 2,32 2,20" fill="url(#g2)" stroke="#92400e" stroke-width="1.5"/>
+  <!-- Middle-right hex -->
+  <polygon points="51,14 62,20 62,32 51,38 40,32 40,20" fill="url(#g2)" stroke="#92400e" stroke-width="1.5"/>
+  <!-- Center hex -->
+  <polygon points="32,26 43,32 43,44 32,50 21,44 21,32" fill="url(#g1)" stroke="#92400e" stroke-width="1.5"/>
+  <!-- Bottom-left hex -->
+  <polygon points="13,38 24,44 24,56 13,62 2,56 2,44" fill="url(#g2)" stroke="#92400e" stroke-width="1.5"/>
+  <!-- Bottom-right hex -->
+  <polygon points="51,38 62,44 62,56 51,62 40,56 40,44" fill="url(#g2)" stroke="#92400e" stroke-width="1.5"/>
+</svg>
