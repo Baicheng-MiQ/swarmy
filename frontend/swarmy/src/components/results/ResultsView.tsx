@@ -30,14 +30,10 @@ export function ResultsView({ job, isPolling, onReset }: ResultsViewProps) {
   const [startTime] = useState(() => Date.now())
   const elapsed = useElapsed(startTime, isPolling)
 
-  const doneCount = job.agents.filter(
-    (a) => a.status === 'done' || a.status === 'error',
-  ).length
-
   return (
     <>
-      {/* Progress bar at top */}
-      <ProgressTracker done={doneCount} total={job.agents.length} />
+      {/* Agent status dots */}
+      <ProgressTracker agents={job.agents} />
 
       {/* Header stats */}
       <section className="section">

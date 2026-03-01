@@ -75,6 +75,27 @@
   font-weight: 400;
 }
 
+.th-sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+.th-sortable:hover {
+  color: var(--color-n-300);
+}
+
+.sort-arrow {
+  margin-left: 4px;
+  font-size: 10px;
+}
+.sort-arrow-idle {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.th-sortable:hover .sort-arrow-idle {
+  opacity: 0.5;
+}
+
 .table td {
   padding: 12px 16px;
   border-bottom: 1px solid var(--color-n-800);
@@ -676,24 +697,42 @@
   padding: 16px 0;
 }
 
-/* ── Progress Bar ── */
-.progress-track {
-  height: 2px;
-  background: var(--color-n-800);
-  border-radius: 1px;
+/* ── Progress Dots ── */
+.progress-dots {
+  display: grid;
+  gap: 6px;
+  justify-content: center;
   margin-bottom: 24px;
-  overflow: hidden;
 }
 
-.progress-fill {
-  height: 100%;
+.progress-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.progress-dot--ready {
+  background: var(--color-n-600);
+}
+
+.progress-dot--working {
   background: var(--color-white);
-  transition: width 0.3s ease;
-  border-radius: 1px;
+  box-shadow: 0 0 6px var(--color-white);
+  animation: pulse-dot 1.2s ease-in-out infinite;
 }
 
-.progress-fill-done {
+.progress-dot--done {
   background: var(--color-success);
+}
+
+.progress-dot--error {
+  background: var(--color-error, #ef4444);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 /* ── Agent Detail (expanded row) ── */

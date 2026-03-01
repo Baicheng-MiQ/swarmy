@@ -20,24 +20,80 @@ function shortModel(id: string): string {
   return parts[parts.length - 1] ?? id
 }
 
+type SortKey = 'status' | 'model' | 'persona' | 'temp' | 'response' | 'cost'
+type SortDir = 'asc' | 'desc'
+
+function SortArrow({ active, dir }: { active: boolean; dir: SortDir }) {
+  if (!active) return <span className="sort-arrow sort-arrow-idle">⇅</span>
+  return <span className="sort-arrow">{dir === 'asc' ? '↑' : '↓'}</span>
+}
+
 export function AgentTable({ agents }: AgentTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [sortKey, setSortKey] = useState<SortKey>('model')
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
 
-  // Sort: done first, then working, then error, then ready
-  const order: Record<string, number> = { done: 0, error: 1, working: 2, ready: 3 }
-  const sorted = [...agents].sort((a, b) => (order[a.status] ?? 4) - (order[b.status] ?? 4))
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
+
+  const sorted = useMemo(() => {
+    const statusOrder: Record<string, number> = { done: 0, error: 1, working: 2, ready: 3 }
+    const dir = sortDir === 'asc' ? 1 : -1
+
+    return [...agents].sort((a, b) => {
+      let cmp = 0
+      switch (sortKey) {
+        case 'status':
+          cmp = (statusOrder[a.status] ?? 4) - (statusOrder[b.status] ?? 4)
+          break
+        case 'model':
+          cmp = shortModel(a.model_name).localeCompare(shortModel(b.model_name))
+          break
+        case 'persona':
+          cmp = (a.persona ?? '').localeCompare(b.persona ?? '')
+          break
+        case 'temp':
+          cmp = (a.temperature ?? 0) - (b.temperature ?? 0)
+          break
+        case 'response':
+          cmp = (a.response ?? '').localeCompare(b.response ?? '')
+          break
+        case 'cost':
+          cmp = (a.cost ?? 0) - (b.cost ?? 0)
+          break
+      }
+      return cmp * dir
+    })
+  }, [agents, sortKey, sortDir])
 
   return (
     <div className="card-tight">
       <table className="table">
         <thead>
           <tr>
-            <th>Status</th>
-            <th>Model</th>
-            <th>Persona</th>
-            <th>Temp</th>
-            <th>Response</th>
-            <th>Cost</th>
+            {([
+              ['status', 'Status'],
+              ['model', 'Model'],
+              ['persona', 'Persona'],
+              ['temp', 'Temp'],
+              ['response', 'Response'],
+              ['cost', 'Cost'],
+            ] as [SortKey, string][]).map(([key, label]) => (
+              <th
+                key={key}
+                onClick={() => handleSort(key)}
+                className="th-sortable"
+              >
+                {label}
+                <SortArrow active={sortKey === key} dir={sortDir} />
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
