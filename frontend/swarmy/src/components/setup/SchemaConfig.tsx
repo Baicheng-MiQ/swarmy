@@ -1,59 +1,67 @@
-import { useState, useCallback } from 'react'
-import { DEFAULT_SCHEMA } from '../../constants'
+import { useState, useCallback, useMemo } from 'react'
+import { SCHEMA_PRESETS } from '../../constants'
 import type { ResponseFormat } from '../../types'
 import { SchemaBuilder } from '../schema-builder/SchemaBuilder'
-import type { SchemaDefinition } from '../schema-builder/types/schema'
+import type { SchemaDefinition, SchemaProperty } from '../schema-builder/types/schema'
 
 interface SchemaConfigProps {
   value: ResponseFormat | null
   onChange: (value: ResponseFormat | null) => void
 }
 
-/** Convert our default schema into SchemaBuilder's internal format */
-const DEFAULT_BUILDER_SCHEMA: SchemaDefinition = {
-  properties: [
-    {
-      name: 'verdict',
-      type: 'string',
-      description: 'Your vote on the question.',
-      required: true,
-      hasEnum: true,
-      enum: ['yes', 'no', 'abstain'],
+/** Convert a ResponseFormat schema object into SchemaBuilder's internal format */
+function toBuilderSchema(rf: ResponseFormat): {
+  schema: SchemaDefinition
+  name: string
+} {
+  const s = rf.json_schema.schema as Record<string, unknown>
+  const props = s.properties as Record<string, Record<string, unknown>>
+  const required = (s.required as string[]) ?? []
+
+  const properties: SchemaProperty[] = Object.entries(props).map(
+    ([name, def]) => ({
+      name,
+      type: def.type as SchemaProperty['type'],
+      description: (def.description as string) ?? '',
+      required: required.includes(name),
+      hasEnum: Array.isArray(def.enum),
+      enum: (def.enum as (string | number)[]) ?? undefined,
+    }),
+  )
+
+  return {
+    schema: {
+      properties,
+      additionalProperties:
+        (s.additionalProperties as boolean | undefined) ?? false,
     },
-    {
-      name: 'confidence',
-      type: 'number',
-      description: 'How confident you are in your verdict, from 0 to 1.',
-      required: true,
-      hasEnum: false,
-    },
-    {
-      name: 'reasoning',
-      type: 'string',
-      description: 'A short explanation of your reasoning.',
-      required: true,
-      hasEnum: false,
-    },
-  ],
-  additionalProperties: false,
+    name: rf.json_schema.name,
+  }
 }
 
 export function SchemaConfig({ value, onChange }: SchemaConfigProps) {
-  const [mode, setMode] = useState<'default' | 'builder'>('default')
+  // bumping builderKey forces SchemaBuilder to re-mount with new initial data
+  const [builderKey, setBuilderKey] = useState(0)
+  const [presetId, setPresetId] = useState(SCHEMA_PRESETS[0].id)
 
-  function handleModeChange(m: 'default' | 'builder') {
-    setMode(m)
-    if (m === 'default') {
-      onChange(DEFAULT_SCHEMA)
-    }
-    // builder mode: will fire via onSchemaChange callback
+  const activePreset = useMemo(
+    () => SCHEMA_PRESETS.find((p) => p.id === presetId) ?? SCHEMA_PRESETS[0],
+    [presetId],
+  )
+
+  const builderData = useMemo(() => toBuilderSchema(activePreset.schema), [activePreset])
+
+  function handlePresetChange(id: string) {
+    setPresetId(id)
+    setBuilderKey((k) => k + 1) // re-mount builder with new preset
+    const preset = SCHEMA_PRESETS.find((p) => p.id === id) ?? SCHEMA_PRESETS[0]
+    onChange(preset.schema)
   }
 
   const handleBuilderChange = useCallback(
     (schemaJson: string) => {
       try {
         const parsed = JSON.parse(schemaJson)
-        // parsed is { name, strict, schema } — wrap it into ResponseFormat
         const rf: ResponseFormat = {
           type: 'json_schema',
           json_schema: parsed,
@@ -67,43 +75,37 @@ export function SchemaConfig({ value, onChange }: SchemaConfigProps) {
   )
 
   // Initialize with default on first render
-  if (value === null && mode === 'default') {
-    onChange(DEFAULT_SCHEMA)
+  if (value === null) {
+    onChange(activePreset.schema)
   }
 
   return (
     <div className="field">
       <label className="field-label">Response Schema</label>
-      <div className="toggle-group">
-        <button
-          className={`toggle-btn ${mode === 'default' ? 'toggle-btn-active' : ''}`}
-          onClick={() => handleModeChange('default')}
-        >
-          Default
-        </button>
-        <button
-          className={`toggle-btn ${mode === 'builder' ? 'toggle-btn-active' : ''}`}
-          onClick={() => handleModeChange('builder')}
-        >
-          Builder
-        </button>
+
+      <div className="preset-grid">
+        {SCHEMA_PRESETS.map((preset) => (
+          <button
+            key={preset.id}
+            className={`preset-card ${presetId === preset.id ? 'preset-card-active' : ''}`}
+            onClick={() => handlePresetChange(preset.id)}
+          >
+            <span className="preset-card-label">{preset.label}</span>
+            <span className="preset-card-desc">{preset.description}</span>
+          </button>
+        ))}
       </div>
 
-      {mode === 'default' ? (
-        <pre className="code-block">
-          {JSON.stringify(DEFAULT_SCHEMA.json_schema.schema, null, 2)}
-        </pre>
-      ) : (
-        <div className="schema-builder-wrapper">
-          <SchemaBuilder
-            initialSchema={DEFAULT_BUILDER_SCHEMA}
-            initialSchemaName="democracy_vote"
-            initialStrictMode={true}
-            showOutput={true}
-            onSchemaChange={handleBuilderChange}
-          />
-        </div>
-      )}
+      <div className="schema-builder-wrapper">
+        <SchemaBuilder
+          key={builderKey}
+          initialSchema={builderData.schema}
+          initialSchemaName={builderData.name}
+          initialStrictMode={true}
+          showOutput={true}
+          onSchemaChange={handleBuilderChange}
+        />
+      </div>
     </div>
   )
 }
