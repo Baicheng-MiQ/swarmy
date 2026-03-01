@@ -83,12 +83,34 @@
   text-transform: uppercase;
 }
 
+.header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
 .header-title {
   font-size: 44px;
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1;
   margin-bottom: 4px;
+}
+
+.dot-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  padding: 4px;
+}
+
+.dot-grid-dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FFF;
+  opacity: 0.8;
 }
 
 .header-title-gradient {

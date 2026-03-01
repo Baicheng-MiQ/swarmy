@@ -18,7 +18,7 @@ interface SwarmVizProps {
 
 export function SwarmViz({ agents, responseFormat }: SwarmVizProps) {
   const fields = useMemo(() => introspectSchema(responseFormat), [responseFormat])
-  const rows = useMemo(() => extractValidRows(agents), [agents])
+  const rows = useMemo(() => extractValidRows(agents, responseFormat), [agents, responseFormat])
 
   // Classify fields
   const enumFields = fields.filter((f) => f.type === 'enum' || f.type === 'boolean')

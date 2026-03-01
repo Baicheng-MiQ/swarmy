@@ -277,12 +277,12 @@ function AgentRow({
 }
 
 const JSON_DARK_STYLES = `
-  .jv-dark, .jv-dark * { color: #e5e5e5 !important; }
-  .jv-dark [class*="font-semibold"] { color: #fafafa !important; }
-  .jv-dark [class*="font-medium"] { color: #fafafa !important; }
-  .jv-dark .json-entry { border-radius: 6px; padding: 6px 8px; }
+  .jv-dark, .jv-dark * { color: #e5e5e5 !important; font-size: 12px !important; }
+  .jv-dark [class*="font-semibold"] { color: #fafafa !important; font-size: 12px !important; }
+  .jv-dark [class*="font-medium"] { color: #fafafa !important; font-size: 12px !important; }
+  .jv-dark .json-entry { border-radius: 4px; padding: 3px 6px; }
   .jv-dark .json-entry:hover { background: #2a2a2a !important; }
-  .jv-dark .json-card { background: #1a1a1a !important; border: 1px solid #2a2a2a !important; border-radius: 8px; padding: 12px; }
+  .jv-dark .json-card { background: #1a1a1a !important; border: 1px solid #2a2a2a !important; border-radius: 6px; padding: 8px; }
   .jv-dark [class*="bg-blue-50"] { background: rgba(59,130,246,0.15) !important; }
   .jv-dark [class*="bg-green-50"] { background: rgba(34,197,94,0.15) !important; }
   .jv-dark [class*="bg-red-50"] { background: rgba(239,68,68,0.15) !important; }
@@ -297,6 +297,18 @@ const JSON_DARK_STYLES = `
   .jv-dark [class*="text-orange-"] { color: #fb923c !important; }
   .jv-dark [class*="bg-secondary"] { background: #3d3d3d !important; }
   .jv-dark [class*="bg-primary"] { background: #fafafa !important; }
+  .jv-dark p { margin: 2px 0 !important; line-height: 1.4 !important; }
+  .jv-dark h1, .jv-dark h2, .jv-dark h3, .jv-dark h4 { font-size: 12px !important; margin: 2px 0 !important; }
+  .jv-dark > div { gap: 4px !important; }
+  .jv-dark [class*="space-y"] > * + * { margin-top: 4px !important; }
+  .jv-dark [class*="gap-"] { gap: 4px !important; }
+  .jv-dark [class*="p-4"], .jv-dark [class*="p-6"] { padding: 6px !important; }
+  .jv-dark [class*="py-"] { padding-top: 3px !important; padding-bottom: 3px !important; }
+  .jv-dark [class*="px-"] { padding-left: 6px !important; padding-right: 6px !important; }
+  .jv-dark [class*="mb-"], .jv-dark [class*="mt-"] { margin-top: 2px !important; margin-bottom: 2px !important; }
+  .jv-dark [class*="text-lg"], .jv-dark [class*="text-xl"], .jv-dark [class*="text-2xl"] { font-size: 12px !important; }
+  .jv-dark [class*="text-sm"], .jv-dark [class*="text-xs"] { font-size: 11px !important; }
+  .jv-dark [class*="rounded-lg"] { border-radius: 4px !important; }
 `
 
 function JsonResponse({ raw }: { raw: string }) {
@@ -312,7 +324,7 @@ function JsonResponse({ raw }: { raw: string }) {
     return (
       <>
         <style dangerouslySetInnerHTML={{ __html: JSON_DARK_STYLES }} />
-        <div className="jv-dark">
+        <div className="jv-dark" style={{ maxWidth: 560 }}>
           <JsonVisualizer data={parsed} />
         </div>
       </>

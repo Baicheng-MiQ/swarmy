@@ -2,7 +2,10 @@
  * Schema introspection — classify each field in a JSON schema by its
  * visualization-relevant type, and extract valid agent responses.
  */
+import Ajv from 'ajv'
 import type { Agent, ResponseFormat } from '../../../types'
+
+const ajv = new Ajv({ allErrors: true, strict: false })
 
 // ── Field classification ──
 
@@ -74,14 +77,23 @@ export interface ParsedAgentRow {
 
 /**
  * Extract parsed, schema-conforming responses from agents.
- * Only includes agents with status === 'done' and valid JSON response.
+ * Only includes agents with status === 'done', valid JSON response,
+ * and (when a schema is provided) responses that validate against it.
  */
-export function extractValidRows(agents: Agent[]): ParsedAgentRow[] {
+export function extractValidRows(
+  agents: Agent[],
+  responseFormat?: ResponseFormat | null,
+): ParsedAgentRow[] {
+  const schema = responseFormat?.json_schema?.schema
+  const validate = schema ? ajv.compile(schema as Record<string, unknown>) : null
+
   const rows: ParsedAgentRow[] = []
   for (const a of agents) {
     if (a.status !== 'done' || !a.response) continue
     try {
       const data = JSON.parse(a.response) as Record<string, unknown>
+      // Skip responses that don't conform to the schema
+      if (validate && !validate(data)) continue
       rows.push({
         agentId: a.agent_id,
         model: shortModel(a.model_name),
