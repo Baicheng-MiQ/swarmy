@@ -195,17 +195,17 @@ function AgentRow({
         </td>
         <td>
           <span className="cell-dim">
-            {agent.persona ? truncate(agent.persona, 30) : '—'}
+            {agent.persona ? truncate(agent.persona, 80) : '—'}
           </span>
         </td>
         <td>{agent.temperature != null ? agent.temperature.toFixed(1) : '—'}</td>
         <td>
           {agent.status === 'working' && <Skeleton width="80%" height={14} />}
           {hasResponse && (
-            <span className="cell-mono">{truncate(agent.response!, 60)}</span>
+            <span className="cell-mono">{truncate(agent.response!, 120)}</span>
           )}
           {hasError && (
-            <span className="cell-error">{truncate(agent.error ?? 'Unknown error', 60)}</span>
+            <span className="cell-error">{truncate(agent.error ?? 'Unknown error', 120)}</span>
           )}
           {agent.status === 'ready' && <span className="cell-dim">—</span>}
         </td>
