@@ -40,12 +40,22 @@ export function SpawnConfig({ value, onChange }: SpawnConfigProps) {
         <div className="count-input">
           <button
             className="count-btn"
-            onClick={() => update({ count: Math.max(2, value.count - 1) })}
-            disabled={value.count <= 2}
+            onClick={() => update({ count: Math.max(1, value.count - 1) })}
+            disabled={value.count <= 1}
           >
             −
           </button>
-          <span className="count-value">{value.count}</span>
+          <input
+            type="number"
+            className="count-value"
+            value={value.count}
+            min={1}
+            max={1000}
+            onChange={(e) => {
+              const n = parseInt(e.target.value, 10)
+              if (!isNaN(n)) update({ count: Math.max(1, Math.min(1000, n)) })
+            }}
+          />
           <button
             className="count-btn"
             onClick={() => update({ count: Math.min(1000, value.count + 1) })}
