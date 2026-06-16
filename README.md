@@ -1,4 +1,6 @@
 # Swarmy
+<img width="1172" height="1091" alt="image" src="https://github.com/user-attachments/assets/991bbe64-727d-43fe-8c87-3b21f4fdece1" />
+<img width="1200" height="1120" alt="image" src="https://github.com/user-attachments/assets/9303cfb5-177c-411f-829a-07015616662a" />
 
 A simulation of **AI democracy**: spawn a swarm of agents across different providers, models, temperatures, and personas — send them the same prompt, collect structured responses, and visualize whether consensus emerges.
 
